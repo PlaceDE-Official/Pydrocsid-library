@@ -10,7 +10,7 @@ from typing import Any, NamedTuple, cast
 from discord import Embed, Message
 from httpx import AsyncClient
 
-from PyDrocsid.redis import redis
+from PyDrocsid.redis_client import redis
 
 
 TTL = 60 * 60 * 24 * 7  # 1 week

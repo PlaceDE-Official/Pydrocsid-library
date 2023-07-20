@@ -8,7 +8,7 @@ from discord.ext.commands.context import Context
 
 from PyDrocsid.environment import RESPONSE_LINK_TTL
 from PyDrocsid.logger import get_logger
-from PyDrocsid.redis import redis
+from PyDrocsid.redis_client import redis
 
 
 logger = get_logger(__name__)

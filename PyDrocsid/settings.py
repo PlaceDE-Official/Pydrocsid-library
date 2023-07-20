@@ -9,7 +9,7 @@ from sqlalchemy.orm import Mapped
 from PyDrocsid.async_thread import lock_deco
 from PyDrocsid.database import Base, db
 from PyDrocsid.environment import CACHE_TTL
-from PyDrocsid.redis import redis
+from PyDrocsid.redis_client import redis
 
 
 if not TYPE_CHECKING:

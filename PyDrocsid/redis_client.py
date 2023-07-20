@@ -1,6 +1,6 @@
 from typing import Callable, cast
 
-from aioredis import Redis, from_url
+from redis.asyncio import Redis, from_url
 
 from PyDrocsid.environment import REDIS_DB, REDIS_HOST, REDIS_PORT
 
