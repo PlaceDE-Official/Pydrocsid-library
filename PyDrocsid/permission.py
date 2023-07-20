@@ -16,7 +16,7 @@ from sqlalchemy.orm import Mapped
 
 from PyDrocsid.database import Base, db
 from PyDrocsid.environment import CACHE_TTL
-from PyDrocsid.redis import redis
+from PyDrocsid.redis_client import redis
 from PyDrocsid.translations import t
 
 
