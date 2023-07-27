@@ -17,6 +17,7 @@ from discord import (
     RawReactionClearEmojiEvent,
     RawReactionClearEvent,
     Role,
+    StageChannel,
     TextChannel,
     Thread,
     User,
@@ -56,6 +57,8 @@ async def extract_from_raw_reaction_event(bot: Bot, event: RawReactionActionEven
 
     channel = cast(Messageable | None, bot.get_channel(event.channel_id))
     if channel is None:
+        return None
+    if isinstance(channel, StageChannel):
         return None
 
     user: User | Member | None
