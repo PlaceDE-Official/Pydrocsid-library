@@ -205,6 +205,8 @@ class Events:
             channel = cast(Messageable | None, bot.get_channel(event.channel_id))
             if channel is None:
                 return None
+            if isinstance(channel, StageChannel):
+                return None
 
             try:
                 return (await channel.fetch_message(event.message_id),)
@@ -220,6 +222,8 @@ class Events:
 
             channel = cast(Messageable | None, bot.get_channel(event.channel_id))
             if channel is None:
+                return None
+            if isinstance(channel, StageChannel):
                 return None
 
             try:

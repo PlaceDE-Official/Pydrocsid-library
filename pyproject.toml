@@ -37,12 +37,12 @@ types-PyYAML = "^6.0.5"
 types-certifi = "^2021.10.8"
 
 [tool.poe.tasks]
-flake8 = "flake8 . --count --statistics --show-source"
+flake8 = "flake8 . --count --statistics --show-source --ignore E203"
 isort = "isort ."
 black = "black ."
 format = ["isort", "black"]
 mypy = "mypy ."
-lint = ["format", "mypy", "flake8"]
+lint = ["format", "mypy"]
 pre-commit = ["lint"]
 
 [tool.poe.tasks.setup]

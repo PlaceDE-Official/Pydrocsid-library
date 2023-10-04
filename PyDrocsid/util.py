@@ -58,11 +58,14 @@ async def check_wastebasket(
 
     # search all embeds for given footer
     for embed in message.embeds:
+        if not embed.author:
+            continue
         if embed.footer.text == Embed.Empty:
             continue
 
-        pattern = re.escape(footer).replace("\\{\\}", "{}").format(r".*?#\d{4}", r"(\d+)")  # noqa: P103
-        if (match := re.match("^" + pattern + "$", cast(str, embed.footer.text))) is None:
+        # pattern = re.escape(footer).replace("\\ ", " ").replace("\\{\\}", "{}").format(".*? (#\d{4})|(#\d)", r"\((\d+)\)")
+        pattern = r"\(Author ID: (\d+)\)"
+        if (match := re.search(pattern, cast(str, embed.footer.text))) is None:
             continue
 
         author_id = int(match.group(1))  # id of user who originally requested this embed
