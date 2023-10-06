@@ -96,6 +96,8 @@ async def _load_discohook_data(link: str) -> Any:
 
     client: AsyncClient
     async with AsyncClient() as client:
+        if not link.startswith("https://"):
+            raise DiscoHookError("Invalid link")
         response = await client.head(link, follow_redirects=True)
         if response.is_error:
             raise DiscoHookError("Invalid link")

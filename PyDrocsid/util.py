@@ -2,7 +2,7 @@ import io
 import re
 from socket import AF_INET, SHUT_RD, SOCK_STREAM, gethostbyname, socket, timeout
 from time import time
-from typing import Any, cast
+from typing import Any, cast, List
 
 from discord import (
     Attachment,
@@ -19,8 +19,9 @@ from discord import (
     TextChannel,
 )
 from discord.abc import Messageable, Snowflake
+from discord.ext.commands import Converter, Context
 from discord.ext.commands.bot import Bot
-from discord.ext.commands.errors import CommandError
+from discord.ext.commands.errors import CommandError, BadArgument
 
 from PyDrocsid.config import Config
 from PyDrocsid.emojis import name_to_emoji
@@ -235,3 +236,22 @@ def check_message_send_permissions(
         raise CommandError(t.message_send_permission_error.could_not_send_file(channel.mention))
     if check_embed and not permissions.embed_links:
         raise CommandError(t.message_send_permission_error.could_not_send_embed(channel.mention))
+
+
+class RoleListConverter(Converter[Role]):
+    """Return a role object depending on whether the role is existing."""
+
+    async def convert(self, ctx: Context[Bot], arg: str) -> List[Role]:
+        guild: Guild = ctx.bot.guilds[0]
+        out = []
+        for argument in arg.split(" "):
+            if not (match := re.match(r"^(<&!?)?([0-9]{15,20})(?(1)>)$", argument)):
+                raise CommandError(f"Role not found : {argument}")
+
+            # find user/role by id
+            role_id: int = int(match.group(2))
+            if role := guild.get_role(role_id):
+                out.append(role)
+            else:
+                raise CommandError(f"Role not found {role_id}.")
+        return out
