@@ -2,7 +2,7 @@ import io
 import re
 from socket import AF_INET, SHUT_RD, SOCK_STREAM, gethostbyname, socket, timeout
 from time import time
-from typing import Any, cast, List
+from typing import Any, List, cast
 
 from discord import (
     Attachment,
@@ -19,9 +19,9 @@ from discord import (
     TextChannel,
 )
 from discord.abc import Messageable, Snowflake
-from discord.ext.commands import Converter, Context
+from discord.ext.commands import Context, Converter
 from discord.ext.commands.bot import Bot
-from discord.ext.commands.errors import CommandError, BadArgument
+from discord.ext.commands.errors import BadArgument, CommandError
 
 from PyDrocsid.config import Config
 from PyDrocsid.emojis import name_to_emoji
@@ -245,7 +245,7 @@ class RoleListConverter(Converter[Role]):
         guild: Guild = ctx.bot.guilds[0]
         out = []
         for argument in arg.split(" "):
-            if not (match := re.match(r"^(<&!?)?([0-9]{15,20})(?(1)>)$", argument)):
+            if not (match := re.match(r"^(<@&!?)?([0-9]{15,20})(?(1)>)$", argument)):
                 raise CommandError(f"Role not found : {argument}")
 
             # find user/role by id
