@@ -2,7 +2,7 @@ import io
 import re
 from socket import AF_INET, SHUT_RD, SOCK_STREAM, gethostbyname, socket, timeout
 from time import time
-from typing import Any, List, cast
+from typing import Any, List, Optional, Union, cast
 
 from discord import (
     Attachment,
@@ -17,9 +17,10 @@ from discord import (
     Permissions,
     Role,
     TextChannel,
+    VoiceChannel,
 )
 from discord.abc import Messageable, Snowflake
-from discord.ext.commands import Context, Converter
+from discord.ext.commands import Context, Converter, GuildChannelConverter
 from discord.ext.commands.bot import Bot
 from discord.ext.commands.errors import BadArgument, CommandError
 
@@ -255,3 +256,19 @@ class RoleListConverter(Converter[Role]):
             else:
                 raise CommandError(f"Role not found {role_id}.")
         return out
+
+
+class DynamicVoiceConverter(Converter[Union[TextChannel, VoiceChannel]]):
+    """Return a channel object depending on whether the channel is existing."""
+
+    async def convert(self, ctx: Context[Bot], arg: str) -> Optional[Union[TextChannel, VoiceChannel]]:
+        if match := re.match(r"^.*/channels/\d+/(\d+)$", arg):
+            channel = ctx.guild.get_channel(int(match.group(1)))
+        else:
+            channel = await GuildChannelConverter().convert(ctx, arg)
+
+        if not channel:
+            raise CommandError(f"Channel not found: {arg}")
+        if not isinstance(channel, TextChannel) and not isinstance(channel, VoiceChannel):
+            raise CommandError(f"Channel is not a text or voice channel: {arg}")
+        return channel
