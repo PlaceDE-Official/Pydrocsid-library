@@ -25,6 +25,7 @@ frozenlist = ">=1.4.0"
 yarl = ">=1.9.2"
 greenlet = ">=2.0.2"
 redis = "^4.5.5"
+fair-async-rlock = "^1.0.6"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^4.0.1"

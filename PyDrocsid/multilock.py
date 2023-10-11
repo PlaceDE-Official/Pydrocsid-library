@@ -3,6 +3,7 @@ from __future__ import annotations
 from asyncio import Lock
 from typing import Any, Generic, TypeVar
 
+from fair_async_rlock import FairAsyncRLock
 
 T = TypeVar("T")
 
@@ -25,7 +26,7 @@ class MultiLock(Generic[T]):
     """Container for multiple async locks which automatically deletes unused locks"""
 
     def __init__(self) -> None:
-        self.locks: dict[T, Lock] = {}
+        self.locks: dict[T, Lock | FairAsyncRLock] = {}
         self.requests: dict[T, int] = {}
 
     def __getitem__(self, key: T) -> _LockContext[T]:
@@ -43,3 +44,12 @@ class MultiLock(Generic[T]):
         if not self.requests[key]:
             self.locks.pop(key)
             self.requests.pop(key)
+
+
+class ReentrantMultiLock(MultiLock[Generic[T]]):
+    """Container for multiple async reentrant locks which automatically deletes unused locks"""
+
+    async def acquire(self, key: T) -> None:
+        lock: FairAsyncRLock = self.locks.setdefault(key, FairAsyncRLock())
+        self.requests[key] = self.requests.get(key, 0) + 1
+        await lock.acquire()

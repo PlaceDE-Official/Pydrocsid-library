@@ -239,6 +239,11 @@ def check_message_send_permissions(
         raise CommandError(t.message_send_permission_error.could_not_send_embed(channel.mention))
 
 
+def escape_codeblock(string: str):
+    prefix = "​" if string.startswith("`") else ""
+    return f"``{prefix}{string.replace('`', '`​')}``"
+
+
 class RoleListConverter(Converter[Role]):
     """Return a role object depending on whether the role is existing."""
 
