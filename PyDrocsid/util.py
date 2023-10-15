@@ -246,7 +246,7 @@ def escape_codeblock(string: str):
 
 
 class RoleListConverter(Converter[Role]):
-    """Return a role object depending on whether the role is existing."""
+    """Return a list of role objects depending on whether the role is existing."""
 
     async def convert(self, ctx: Context[Bot], arg: str) -> List[Role]:
         guild: Guild = ctx.bot.guilds[0]
