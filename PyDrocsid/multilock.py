@@ -5,6 +5,7 @@ from typing import Any, Generic, TypeVar
 
 from fair_async_rlock import FairAsyncRLock
 
+
 T = TypeVar("T")
 
 
