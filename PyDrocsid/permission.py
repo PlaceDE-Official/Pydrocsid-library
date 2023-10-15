@@ -170,7 +170,7 @@ class BasePermissionLevel(Enum):
 
 
 def check_permission_level(level: BasePermission | BasePermissionLevel) -> Callable[[Context[Bot]], Awaitable[bool]]:
-    """Discord commmand check to require a given level when invoking the command."""
+    """Discord command check to require a given level when invoking the command."""
 
     async def inner(ctx: Context[Bot]) -> bool:
         member: User | Member = ctx.author

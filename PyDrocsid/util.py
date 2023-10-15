@@ -31,6 +31,7 @@ from PyDrocsid.translations import t
 
 
 t = t.g
+ZERO_WIDTH_WHITESPACE = "​"
 
 
 async def is_teamler(member: Member) -> bool:
@@ -240,8 +241,8 @@ def check_message_send_permissions(
 
 
 def escape_codeblock(string: str):
-    prefix = "​" if string.startswith("`") else ""
-    return f"``{prefix}{string.replace('`', '`​')}``"
+    prefix = ZERO_WIDTH_WHITESPACE if string.startswith("`") else ""
+    return f"``{prefix}{string.replace('`', f'`{ZERO_WIDTH_WHITESPACE}')}``"
 
 
 class RoleListConverter(Converter[Role]):
