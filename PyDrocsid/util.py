@@ -28,6 +28,7 @@ from PyDrocsid.config import Config
 from PyDrocsid.emojis import name_to_emoji
 from PyDrocsid.permission import BasePermission
 from PyDrocsid.translations import t
+from PyDrocsid.types import GuildMessageable
 
 
 t = t.g
@@ -124,7 +125,7 @@ async def attachment_to_file(attachment: Attachment) -> File:
     return File(file, filename=attachment.filename, spoiler=attachment.is_spoiler())
 
 
-async def read_normal_message(bot: Bot, channel: TextChannel, author: Member) -> tuple[str, list[File]]:
+async def read_normal_message(bot: Bot, channel: GuildMessageable, author: Member) -> tuple[str, list[File]]:
     """Read a message and return content and attachments."""
 
     def predicate(m: Message) -> bool:

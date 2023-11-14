@@ -1,5 +1,5 @@
 class Graph:
-    def __init__(self):
+    def __init__(self) -> None:
         self._connections = dict()
         self._vertices = set()
 
@@ -10,12 +10,12 @@ class Graph:
             graph.add_edge(u, v)
         return graph
 
-    def add_edge(self, u, v):
+    def add_edge(self, u, v) -> None:
         self._connections.setdefault(u, []).append(v)
         self._vertices.add(u)
         self._vertices.add(v)
 
-    def is_cyclic_recursion(self, u, visited, stack):
+    def is_cyclic_recursion(self, u, visited, stack) -> bool:
         visited[u] = True
         stack[u] = True
 
@@ -32,7 +32,7 @@ class Graph:
         stack[u] = False
         return False
 
-    def is_cyclic(self):
+    def is_cyclic(self) -> bool:
         visited = {connection: False for connection in self._vertices}
         stack = {connection: False for connection in self._vertices}
         for node in self._connections:
