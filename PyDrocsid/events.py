@@ -141,8 +141,13 @@ class Events:
 
     @staticmethod
     async def on_message_edit(bot: Bot, before: Message, after: Message) -> None:
-        if before.content != after.content:
-            await handle_edit(bot, after)
+        if (before.content == after.content and
+                json.dumps([embed.to_dict() for embed in before.embeds]) ==
+                json.dumps([embed.to_dict() for embed in after.embeds])
+        ):
+            return
+
+        await handle_edit(bot, after)
 
         await call_event_handlers("message_edit", before, after, identifier=after.id)
 
@@ -311,7 +316,8 @@ def listener(func: AsyncFunc) -> AsyncFunc:
 
 
 async def call_event_handlers(
-    event: str, *args: Any, identifier: Any = None, prepare: Callable[[], Awaitable[Iterable[Any] | None]] | None = None
+        event: str, *args: Any, identifier: Any = None,
+        prepare: Callable[[], Awaitable[Iterable[Any] | None]] | None = None
 ) -> bool:
     """
     Call handlers for a given event.
