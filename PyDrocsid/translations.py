@@ -149,7 +149,7 @@ class _Namespace:
 class Translations:
     """Container of multiple translation namespaces"""
 
-    LANGUAGE: str
+    LANGUAGE: str = "en"
     FALLBACK: str = "en"
 
     def __init__(self) -> None:

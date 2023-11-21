@@ -19,13 +19,14 @@ from discord import (
     TextChannel,
     VoiceChannel,
 )
-from discord.abc import Messageable, Snowflake
+from discord.abc import Messageable, Snowflake, User
 from discord.ext.commands import Context, Converter, GuildChannelConverter
 from discord.ext.commands.bot import Bot
 from discord.ext.commands.errors import BadArgument, CommandError
 
 from PyDrocsid.config import Config
 from PyDrocsid.emojis import name_to_emoji
+from PyDrocsid.environment import OWNER_ID
 from PyDrocsid.permission import BasePermission
 from PyDrocsid.translations import t
 from PyDrocsid.types import GuildMessageable
@@ -33,6 +34,10 @@ from PyDrocsid.types import GuildMessageable
 
 t = t.g
 ZERO_WIDTH_WHITESPACE = "​"
+
+
+def get_owner(bot: Bot) -> Optional[User]:
+    return bot.get_user(OWNER_ID)
 
 
 async def is_teamler(member: Member) -> bool:
