@@ -263,3 +263,192 @@ async def send_long_embed(
         messages = [await create_pagination(channel, pagination_user, embeds, **kwargs)]
 
     return [msg for msg in messages if msg]
+
+
+def split_message(
+    embeds: list[Embed],
+    content: str | None = None,
+    repeat_title: bool = False,
+    repeat_thumbnail: bool = False,
+    repeat_name: bool = False,
+    repeat_image: bool = False,
+    repeat_footer: bool = False,
+    max_fields: int = 25,
+    **kwargs: Any,
+) -> list[tuple[str, list[Embed]]]:
+    """
+    Split and send a long embed in multiple messages.
+
+    :param embeds: the embed to send
+    :param content: the content of the first message
+    :param repeat_title: whether to repeat the embed title in every embed
+    :param repeat_thumbnail: whether to repeat the thumbnail image in every embed
+    :param repeat_name: whether to repeat field names in every embed
+    :param repeat_image: whether to repeat the image in every embed
+    :param repeat_footer: whether to repeat the footer in every embed
+    :param max_fields: the maximum number of fields an embed is allowed to have
+    :return: list of all messages that have been sent
+    """
+
+    # always limit max_fields to 25
+    max_fields = min(max_fields, EmbedLimits.FIELDS)
+
+    # the maximum possible size of an embed
+    max_total: int = EmbedLimits.TOTAL - 20
+
+    for embed in embeds:
+        # pre-checks
+        if len(embed.title) > EmbedLimits.TITLE - 20:
+            raise ValueError("Embed title is too long.")
+        if len(embed.url) > EmbedLimits.URL:
+            raise ValueError("Embed url is too long.")
+        if embed.thumbnail and len(embed.thumbnail.url) > EmbedLimits.THUMBNAIL_URL:
+            raise ValueError("Thumbnail url is too long.")
+        if embed.image and len(embed.image.url) > EmbedLimits.IMAGE_URL:
+            raise ValueError("Image url is too long.")
+        if embed.footer:
+            if len(embed.footer.text) > EmbedLimits.FOOTER_TEXT:
+                raise ValueError("Footer text is too long.")
+            if len(embed.footer.icon_url) > EmbedLimits.FOOTER_ICON_URL:
+                raise ValueError("Footer icon_url is too long.")
+        if embed.author:
+            if len(embed.author.name) > EmbedLimits.AUTHOR_NAME:
+                raise ValueError("Author name is too long.")
+            if len(embed.author.url) > EmbedLimits.AUTHOR_URL:
+                raise ValueError("Author url is too long.")
+            if len(embed.author.icon_url) > EmbedLimits.AUTHOR_ICON_URL:
+                raise ValueError("Author icon_url is too long.")
+        for i, field in enumerate(embed.fields):
+            if len(field.name) > EmbedLimits.FIELD_NAME:
+                raise ValueError(f"Name of field at position {i} is too long.")
+
+    tmp: list[Embed] = []
+
+    def add_embed(e: Embed) -> None:
+        """Copy and add an embed to the list of embeds."""
+
+        tmp.append(Embed.from_dict(deepcopy(e.to_dict())))
+
+    def clear_embed(*, clear_completely: bool = False) -> None:
+        if not repeat_title:
+            cur.title = ""
+            cur.remove_author()
+        if not repeat_thumbnail:
+            cur.set_thumbnail(url=EmptyEmbed)
+
+        if clear_completely:
+            cur.description = ""
+            cur.clear_fields()
+
+    for embed in embeds:
+        # clear and backup embed fields, footer and image
+        fields = embed.fields.copy()
+        footer = embed.footer
+        image = embed.image
+        cur = embed.copy()
+        cur.clear_fields()
+        if not repeat_footer and footer:
+            delattr(cur, "_footer")
+        if not repeat_image:
+            cur.set_image(url=EmptyEmbed)
+
+        *parts, last = split_lines(cast(str, embed.description or ""), EmbedLimits.DESCRIPTION) or [""]
+        for part in parts:
+            cur.description = part
+            add_embed(cur)
+            clear_embed()
+
+        cur.description = last
+
+        # add embed fields
+        for field in fields:
+            parts = split_lines(field.value, EmbedLimits.FIELD_VALUE)
+            inline = bool(field.inline) and len(parts) == 1
+
+            if not field.name:
+                field.name = EMPTY_MARKDOWN
+
+            field_length: int = len(field.name) + sum(map(len, parts)) + len(EMPTY_MARKDOWN) * (len(parts) - 1)
+
+            # check whether field fits in just one embed
+            total_size_one_embed = field_length
+            total_size_one_embed += len(cur.title)
+            if cur.author:
+                total_size_one_embed += len(cur.author.name)
+            if cur.footer:
+                total_size_one_embed += len(cur.footer.text)
+
+            if len(parts) <= max_fields and total_size_one_embed <= max_total:
+
+                if len(parts) + len(cur.fields) > max_fields or field_length + len(cur) > max_total:
+                    # field does not fit into current embed
+                    # -> create new embed
+                    add_embed(cur)
+                    clear_embed(clear_completely=True)
+
+                # add field to current embed
+                for i, part in enumerate(parts):
+                    cur.add_field(name=[field.name, EMPTY_MARKDOWN][i > 0], value=part, inline=inline)
+
+            else:
+
+                # add field parts individually
+                for i, part in enumerate(parts):
+                    name: str = [field.name, EMPTY_MARKDOWN][i > 0]
+
+                    # check whether embed is full
+                    if len(cur.fields) >= max_fields or len(cur) + len(name) + len(part) > max_total:
+                        # create new embed
+                        add_embed(cur)
+                        clear_embed(clear_completely=True)
+                        if repeat_name:
+                            name = field.name
+
+                    # add field part
+                    cur.add_field(name=name, value=part, inline=inline)
+
+        # add footer to last embed (if previously removed)
+        if not repeat_footer and footer:
+            if len(cur) + len(footer.text) > max_total:
+                add_embed(cur)
+                clear_embed(clear_completely=True)
+
+            cur.set_footer(text=footer.text, icon_url=footer.icon_url)
+
+        # add image to last embed (if previously removed)
+        if not repeat_image and image:
+            cur.set_image(url=image.url)
+
+        add_embed(cur)
+
+    final: list[tuple[str, list[Embed]]] = []
+    total_length: int = 0
+    one_message = []
+    for embed in tmp:
+        length = 0
+        if embed.author:
+            length += len(embed.author.name)
+        if embed.footer:
+            length += len(embed.footer.text)
+        if embed.description:
+            length += len(embed.description)
+        if embed.title:
+            length += len(embed.title)
+        for field in embed.fields:
+            if field.name:
+                length += len(field.name)
+            if field.value:
+                length += len(field.value)
+
+        if total_length + length <= 6000:
+            one_message.append(embed)
+            total_length += length
+        else:
+            final.append((content if not final else None, one_message))
+            one_message.clear()
+            total_length = length
+            one_message.append(embed)
+    if one_message or not final:
+        final.append((content if not final else None, one_message))
+
+    return final

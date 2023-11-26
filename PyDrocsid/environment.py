@@ -27,7 +27,7 @@ SENTRY_DSN: str | None = getenv("SENTRY_DSN")  # sentry data source name
 SENTRY_ENVIRONMENT: str = getenv("SENTRY_ENVIRONMENT", "production")
 GITHUB_TOKEN: str | None = getenv("GITHUB_TOKEN")  # github personal access token
 
-OWNER_ID: int = int(getenv("OWNER_ID", 0))
+OWNER_IDS: list[int] = [int(x) for x in map(lambda x: x.strip(), getenv("OWNER_IDS", "").split(",")) if x]
 
 DISABLED_COGS: set[str] = set(map(str.lower, getenv("DISABLED_COGS", "").split(",")))
 
