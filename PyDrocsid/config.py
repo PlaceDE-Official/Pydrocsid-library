@@ -1,3 +1,4 @@
+import datetime
 import sys
 from collections import Counter
 from functools import partial
@@ -8,6 +9,7 @@ from typing import Any, Type, TypeVar, cast
 
 import yaml
 from discord import Member, User
+from discord.utils import utcnow
 
 from PyDrocsid.permission import BasePermissionLevel, PermissionLevel
 from PyDrocsid.settings import RoleSettings
@@ -72,6 +74,8 @@ class Config:
     SUDO: BasePermissionLevel
 
     ENABLED_COG_PACKAGES: set[str] = {"PyDrocsid"}
+    STARTED: datetime.datetime
+    LAST_RELOAD: datetime.datetime
 
 
 def get_subclasses_in_enabled_packages(base: Type[T]) -> list[Type[T]]:
@@ -188,6 +192,9 @@ def load_config_file(path: Path) -> None:
 
     with path.open() as file:
         config = yaml.safe_load(file)
+
+    Config.STARTED = utcnow()
+    Config.LAST_RELOAD = utcnow()
 
     Config.NAME = config["name"]
     Config.AUTHOR = getattr(Contributor, config["author"])
