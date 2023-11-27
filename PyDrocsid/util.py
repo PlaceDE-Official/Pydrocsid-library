@@ -1,35 +1,42 @@
 import io
 import re
+from functools import wraps
 from socket import AF_INET, SHUT_RD, SOCK_STREAM, gethostbyname, socket, timeout
 from time import time
-from typing import Any, List, Optional, Union, cast
+from typing import Any, Awaitable, Callable, List, Optional, ParamSpec, TypeVar, Union, cast
 
 from discord import (
     Attachment,
+    Bot,
+    CheckFailure,
     Colour,
     Embed,
     File,
     Forbidden,
     Guild,
+    Interaction,
     Member,
     Message,
     PartialEmoji,
     Permissions,
     Role,
     TextChannel,
+    User,
     VoiceChannel,
 )
-from discord.abc import Messageable, Snowflake, User
-from discord.ext.commands import Context, Converter, GuildChannelConverter
+from discord.abc import Messageable, Snowflake
+from discord.ext.commands import Context, Converter, GuildChannelConverter, check
 from discord.ext.commands.bot import Bot
-from discord.ext.commands.errors import BadArgument, CommandError
+from discord.ext.commands.errors import CommandError
 
+from PyDrocsid.bot_mode import BotMode
 from PyDrocsid.config import Config
 from PyDrocsid.emojis import name_to_emoji
-from PyDrocsid.environment import OWNER_IDS
+from PyDrocsid.environment import OWNER_IDS, SUDOERS
 from PyDrocsid.permission import BasePermission
 from PyDrocsid.translations import t
 from PyDrocsid.types import GuildMessageable
+
 
 t = t.g
 ZERO_WIDTH_WHITESPACE = "​"
@@ -43,7 +50,60 @@ def get_owners(bot: Bot) -> list[User]:
     return owners
 
 
+@check
+def is_sudoer_deco(ctx: Context):
+    if not is_sudoer(ctx):
+        raise CheckFailure(t.not_in_sudoers_file(ctx.author.mention))
+    return True
 
+
+def is_sudoer(ctx: Context | User | Member) -> bool:
+    user_id = ctx.author.id if isinstance(ctx, Context) else ctx.id
+    if isinstance(ctx, Context) and ctx.guild and ctx.guild.owner_id == user_id:
+        return True
+
+    if user_id not in SUDOERS:
+        return False
+    return True
+
+
+T = TypeVar("T")
+P = ParamSpec("P")
+
+
+def interaction_wrapper(f: Callable[P, Awaitable[T]]) -> Callable[P, Awaitable[T]]:
+    """Decorator which wraps an async interaction callback function."""
+
+    @wraps(f)
+    async def inner(*args: P.args, **kwargs: P.kwargs) -> T:
+        interaction: Interaction = args[-1]
+        if message := await check_maintenance(interaction.user):
+            await interaction.response.send_message(message, ephemeral=True)
+            return False
+        return await f(*args, **kwargs)
+
+    return inner
+
+
+async def check_maintenance(user: Member | User | None):
+    """
+    if True, user is not allowed to do things, because auf maintenance.
+    return value is message text to be sent to user
+    """
+    if Config.BOT_MODE == BotMode.NORMAL:
+        return False
+    if user is None and Config.BOT_MODE == BotMode.MAINTENANCE:
+        return t.maintenance_text
+    if Config.BOT_MODE == BotMode.MAINTENANCE:
+        from cogs.library.administration.sudo.permissions import SudoPermission
+
+        if not (await SudoPermission.bypass_maintenance.check_permissions(user) or is_sudoer(user)):
+            return t.maintenance_text
+        return False
+    return "Bot deactivated!"
+
+
+# TODO remove
 async def is_teamler(member: Member) -> bool:
     """Return whether a given member is a team member."""
 

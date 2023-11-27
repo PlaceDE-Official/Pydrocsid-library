@@ -32,6 +32,7 @@ from discord.ext.commands.errors import CommandError
 from PyDrocsid.command_edit import handle_delete, handle_edit
 from PyDrocsid.database import db_wrapper
 from PyDrocsid.multilock import MultiLock
+from PyDrocsid.util import check_maintenance
 
 
 T = TypeVar("T")
@@ -94,10 +95,14 @@ class Events:
 
     @staticmethod
     async def on_typing(_: Bot, channel: Messageable, user: User | Member, when: datetime) -> None:
+        if await check_maintenance(user):
+            return
         await call_event_handlers("typing", channel, user, when, identifier=user.id)
 
     @staticmethod
     async def on_message(bot: Bot, message: Message) -> None:
+        if await check_maintenance(message.author):
+            return
         if message.author == bot.user:
             await call_event_handlers("self_message", message, identifier=message.id)
             return
@@ -125,6 +130,8 @@ class Events:
 
     @staticmethod
     async def on_message_delete(bot: Bot, message: Message) -> None:
+        if await check_maintenance(None):
+            return
         await call_event_handlers("message_delete", message, identifier=message.id)
 
         # delete bot responses if message contained a command
@@ -132,6 +139,8 @@ class Events:
 
     @staticmethod
     async def on_raw_message_delete(bot: Bot, event: RawMessageDeleteEvent) -> None:
+        if await check_maintenance(None):
+            return
         if event.cached_message is not None:
             return
 
@@ -142,9 +151,10 @@ class Events:
 
     @staticmethod
     async def on_message_edit(bot: Bot, before: Message, after: Message) -> None:
-        if (before.content == after.content and
-                json.dumps([embed.to_dict() for embed in before.embeds]) ==
-                json.dumps([embed.to_dict() for embed in after.embeds])
+        if await check_maintenance(before.author):
+            return
+        if before.content == after.content and json.dumps([embed.to_dict() for embed in before.embeds]) == json.dumps(
+            [embed.to_dict() for embed in after.embeds]
         ):
             return
 
@@ -174,6 +184,8 @@ class Events:
             except NotFound:
                 return None
 
+            if await check_maintenance(message.author):
+                return None
             # delete bot responses if old message contained a command
             await handle_edit(bot, message)
             prepared.append(message)
@@ -191,6 +203,9 @@ class Events:
 
     @staticmethod
     async def on_raw_reaction_add(bot: Bot, event: RawReactionActionEvent) -> None:
+        if await check_maintenance(event.member):
+            return
+
         async def prepare() -> ReactionEventData | None:
             return await extract_from_raw_reaction_event(bot, event)
 
@@ -198,6 +213,9 @@ class Events:
 
     @staticmethod
     async def on_raw_reaction_remove(bot: Bot, event: RawReactionActionEvent) -> None:
+        if await check_maintenance(None):
+            return
+
         async def prepare() -> ReactionEventData | None:
             return await extract_from_raw_reaction_event(bot, event)
 
@@ -215,7 +233,10 @@ class Events:
                 return None
 
             try:
-                return (await channel.fetch_message(event.message_id),)
+                message = (await channel.fetch_message(event.message_id),)
+                if await check_maintenance(message[0].author):
+                    return None
+                return message
             except NotFound:
                 return None
 
@@ -223,6 +244,9 @@ class Events:
 
     @staticmethod
     async def on_raw_reaction_clear_emoji(bot: Bot, event: RawReactionClearEmojiEvent) -> None:
+        if await check_maintenance(None):
+            return
+
         async def prepare() -> tuple[Message, PartialEmoji] | None:
             """Extract message and emoji from event."""
 
@@ -233,7 +257,10 @@ class Events:
                 return None
 
             try:
-                return await channel.fetch_message(event.message_id), event.emoji
+                data = (await channel.fetch_message(event.message_id), event.emoji)
+                if await check_maintenance(data[0].author):
+                    return None
+                return data
             except NotFound:
                 return None
 
@@ -241,14 +268,20 @@ class Events:
 
     @staticmethod
     async def on_member_join(_: Bot, member: Member) -> None:
+        if await check_maintenance(member):
+            return
         await call_event_handlers("member_join", member, identifier=member.id)
 
     @staticmethod
     async def on_member_remove(_: Bot, member: Member) -> None:
+        if await check_maintenance(member):
+            return
         await call_event_handlers("member_remove", member, identifier=member.id)
 
     @staticmethod
     async def on_member_update(_: Bot, before: Member, after: Member) -> None:
+        if await check_maintenance(after):
+            return
         # check if nickname has been updated
         if before.nick != after.nick:
             await call_event_handlers("member_nick_update", before, after, identifier=before.id)
@@ -265,18 +298,26 @@ class Events:
 
     @staticmethod
     async def on_user_update(_: Bot, before: User, after: User) -> None:
+        if await check_maintenance(before):
+            return
         await call_event_handlers("user_update", before, after, identifier=before.id)
 
     @staticmethod
     async def on_voice_state_update(_: Bot, member: Member, before: VoiceState, after: VoiceState) -> None:
+        if await check_maintenance(member):
+            return
         await call_event_handlers("voice_state_update", member, before, after, identifier=member.id)
 
     @staticmethod
     async def on_member_ban(_: Bot, guild: Guild, user: User | Member) -> None:
+        if await check_maintenance(user):
+            return
         await call_event_handlers("member_ban", guild, user, identifier=user.id)
 
     @staticmethod
     async def on_member_unban(_: Bot, guild: Guild, user: User) -> None:
+        if await check_maintenance(user):
+            return
         await call_event_handlers("member_unban", guild, user, identifier=user.id)
 
     @staticmethod
@@ -293,6 +334,8 @@ class Events:
 
     @staticmethod
     async def on_thread_create(_: Bot, thread: Thread) -> None:
+        if await check_maintenance(thread.owner):
+            return
         await call_event_handlers("thread_create", thread, identifier=thread.id)
 
     @staticmethod
@@ -317,8 +360,7 @@ def listener(func: AsyncFunc) -> AsyncFunc:
 
 
 async def call_event_handlers(
-        event: str, *args: Any, identifier: Any = None,
-        prepare: Callable[[], Awaitable[Iterable[Any] | None]] | None = None
+    event: str, *args: Any, identifier: Any = None, prepare: Callable[[], Awaitable[Iterable[Any] | None]] | None = None
 ) -> bool:
     """
     Call handlers for a given event.

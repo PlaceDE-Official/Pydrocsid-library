@@ -5,11 +5,11 @@ from typing import Any
 from discord import ButtonStyle, Embed, Interaction, InteractionResponse, Member, Message, User, ui
 from discord.abc import Messageable
 
-from PyDrocsid.command import reply
+from PyDrocsid.command import MaintenanceAwareView, reply
 from PyDrocsid.environment import PAGINATION_TTL
 
 
-class PaginatorButton(ui.Button[ui.View]):
+class PaginatorButton(ui.Button[MaintenanceAwareView]):
     def __init__(self, paginator: Paginator, label: str, style: ButtonStyle, page: int):
         super().__init__(
             label=label, style=style, disabled=page == paginator.page or page not in range(len(paginator.pages))
@@ -23,7 +23,7 @@ class PaginatorButton(ui.Button[ui.View]):
         await interaction.response.defer()
 
 
-class Paginator(ui.View):
+class Paginator(MaintenanceAwareView):
     def __init__(self, pages: list[Embed], *, timeout: float, page: int = 0, user: User | Member | None = None):
         super().__init__(timeout=timeout)
 
@@ -68,6 +68,8 @@ class Paginator(ui.View):
         await self._update()
 
     async def interaction_check(self, interaction: Interaction) -> bool:
+        if not await super().interaction_check(interaction):
+            return False
         if not self.user or self.user == interaction.user:
             return True
 

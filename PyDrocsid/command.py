@@ -29,7 +29,7 @@ from PyDrocsid.events import call_event_handlers
 from PyDrocsid.material_colors import MaterialColors
 from PyDrocsid.permission import BasePermission
 from PyDrocsid.translations import t
-from PyDrocsid.util import check_message_send_permissions
+from PyDrocsid.util import check_maintenance, check_message_send_permissions
 
 
 t = t.g
@@ -124,7 +124,7 @@ async def reply(
 
     if isinstance(ctx, InteractionResponse):
         interaction = await ctx.send_message(*args, **kwargs, ephemeral=True)
-        return await interaction.original_message()
+        return await interaction.original_response()
 
     if isinstance(channel := ctx.channel if isinstance(ctx, (Message, Context)) else ctx, TextChannel):
         try:
@@ -168,7 +168,15 @@ async def add_reactions(ctx: Context[Any] | Message, *emojis: str) -> None:
         await call_event_handlers("permission_error", ctx.guild, t.could_not_add_reaction(message.channel.mention))
 
 
-class ConfirmationButton(ui.Button[ui.View]):
+class MaintenanceAwareView(ui.View):
+    async def interaction_check(self, interaction: Interaction) -> bool:
+        if message := await check_maintenance(interaction.user):
+            await interaction.response.send_message(message, ephemeral=True)
+            return False
+        return True
+
+
+class _ConfirmationButton(ui.Button[MaintenanceAwareView]):
     def __init__(self, confirmation: Confirmation, label: str, style: ButtonStyle, disabled: bool, result: bool):
         super().__init__(label=label, style=style, disabled=disabled)
 
@@ -180,7 +188,7 @@ class ConfirmationButton(ui.Button[ui.View]):
         await interaction.response.defer()
 
 
-class Confirmation(ui.View):
+class Confirmation(MaintenanceAwareView):
     def __init__(
         self,
         timeout: int = 20,
@@ -229,14 +237,14 @@ class Confirmation(ui.View):
     def _update_buttons(self) -> None:
         done = self._result is not None
         buttons = [
-            ConfirmationButton(
+            _ConfirmationButton(
                 confirmation=self,
                 label=t.confirmed if self._result is True else t.confirm,
                 style=ButtonStyle.danger if self._danger else ButtonStyle.success,
                 disabled=done,
                 result=True,
             ),
-            ConfirmationButton(
+            _ConfirmationButton(
                 confirmation=self,
                 label=t.canceled if self._result is False else t.cancel,
                 style=ButtonStyle.secondary if self._danger else ButtonStyle.danger,
@@ -266,6 +274,8 @@ class Confirmation(ui.View):
         self.stop()
 
     async def interaction_check(self, interaction: Interaction) -> bool:
+        if not await super().interaction_check(interaction):
+            return False
         if interaction.user == self._user:
             return True
 

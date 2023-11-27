@@ -21,7 +21,7 @@ confirmation: Confirmation
 confirm: Confirm
 cancel: Cancel
 confirmed: Confirmed
-canceled: Canceled
+canceled: Cancelled
 
 role_assignment_error:
   no_permissions: I cannot manage this role because I don't have `manage_roles` permission on this server.
@@ -36,3 +36,26 @@ message_send_permission_error:
   could_not_send_embed: Message could not be sent because I don't have `embed_links` permission in {}.
 
 could_not_add_reaction: Could not add reactions because I don't have `add_reactions` permission in {}.
+
+
+bot_mode_change: "BOT MODE CHANGED"
+bot_modes:
+  normal: "Bot was set back to normal mode by {} ({} {}) at {} ({} unix time) (UTC)."
+  maintenance: |
+    Bot was set to maintenance mode by {} ({} {}) at {} ({} unix time) (UTC).
+    Commands only work when invoked with `.sudo` (if sudo is active).
+    User interactions are ignored.
+  stopped: "Bot was completely stopped by {} ({} {}) at {} ({} unix time) (UTC)."
+  killed: "Bot was completely killed by {} ({} {}) at {} ({} unix time) (UTC)."
+
+bot_activity:
+  deactivated: "COMPLETELY DEACTIVATED BY ADMINISTRATOR!"
+  maintenance: "MAINTENANCE MODE"
+  normal: ""
+bot_status:
+  normal: "Everything is normal."
+  maintenance: |
+    Maintenance mode:
+    Commands only work when invoked with `.sudo` (if sudo is active).
+    All other user interactions are ignored.
+maintenance_text: "I am in maintenance mode! We don't want to cause any errors until I am fully operational. Try again later."

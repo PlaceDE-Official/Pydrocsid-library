@@ -12,6 +12,7 @@ from discord import Member, User
 from PyDrocsid.permission import BasePermissionLevel, PermissionLevel
 from PyDrocsid.settings import RoleSettings
 from PyDrocsid.translations import Translations
+from PyDrocsid.types import BotMode
 
 
 T = TypeVar("T")
@@ -41,6 +42,9 @@ class Config:
     REPO_LINK: str
     REPO_ICON: str
 
+    BOT_MODE: BotMode
+    VOLUME_PATH: str
+
     # pydrocsid information
     DOCUMENTATION_URL: str
     DISCORD_INVITE: str
@@ -65,6 +69,7 @@ class Config:
     DEFAULT_PERMISSION_LEVEL: BasePermissionLevel
     DEFAULT_PERMISSION_OVERRIDES: dict[str, dict[str, BasePermissionLevel]] = {}
     TEAMLER_LEVEL: BasePermissionLevel
+    SUDO: BasePermissionLevel
 
     ENABLED_COG_PACKAGES: set[str] = {"PyDrocsid"}
 
@@ -150,6 +155,7 @@ def load_permission_levels(config: dict[str, Any]) -> None:
     # add owner permission level
     owner_level = max([pl.level for pl in permission_levels.values()], default=0) + 1
     permission_levels["owner"] = PermissionLevel(owner_level, ["owner"], "Owner", [], [])
+    permission_levels["sudo"] = PermissionLevel(300, ["sudo", "s"], "Sudo", [], [])
 
     # sort permission levels in descending order
     permission_levels = {
@@ -167,6 +173,7 @@ def load_permission_levels(config: dict[str, Any]) -> None:
 
     Config.DEFAULT_PERMISSION_LEVEL = getattr(Config.PERMISSION_LEVELS, config["default_permission_level"].upper())
     Config.TEAMLER_LEVEL = getattr(Config.PERMISSION_LEVELS, config["teamler_level"].upper())
+    Config.SUDO = getattr(Config.PERMISSION_LEVELS, "SUDO")
 
     # load default permission level overrides
     for cog, overrides in config.get("default_permission_overrides", {}).items():
@@ -185,6 +192,7 @@ def load_config_file(path: Path) -> None:
     Config.NAME = config["name"]
     Config.AUTHOR = getattr(Contributor, config["author"])
     Config.ROLES = {k: (v["name"], v["check_assignable"]) for k, v in config["roles"].items()}
+    Config.VOLUME_PATH = config["volume_path"]
 
     load_repo(config)
     load_pydrocsid_info(config)
