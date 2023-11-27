@@ -29,6 +29,7 @@ GITHUB_TOKEN: str | None = getenv("GITHUB_TOKEN")  # github personal access toke
 
 OWNER_IDS: list[int] = [int(x) for x in map(lambda x: x.strip(), getenv("OWNER_IDS", "").split(",")) if x]
 SUDOERS: list[int] = [int(x) for x in map(lambda x: x.strip(), getenv("SUDOERS", "").split(",")) if x]
+ADVENT_PATH: str = getenv("ADVENT_PATH", "/tmp/advent")
 
 DISABLED_COGS: set[str] = set(map(str.lower, getenv("DISABLED_COGS", "").split(",")))
 
