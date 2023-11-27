@@ -6,7 +6,8 @@ from datetime import datetime
 from typing import Any, Awaitable, Callable, Type, cast
 from urllib.parse import urljoin
 
-from discord import Guild, Invite, Member, Message, PartialEmoji, RawMessageDeleteEvent, Role, Thread, VoiceState
+from discord import Guild, Invite, Member, Message, PartialEmoji, RawMessageDeleteEvent, Role, Thread, VoiceState, \
+    ScheduledEvent
 from discord.abc import Messageable, User
 from discord.ext.commands.bot import Bot
 from discord.ext.commands.cog import Cog as DiscordCog
@@ -136,6 +137,9 @@ class Cog(DiscordCog):
         pass
 
     async def on_thread_join(self, thread: Thread) -> None:
+        pass
+
+    async def on_scheduled_event_update(self, before: ScheduledEvent, after: ScheduledEvent) -> None:
         pass
 
 

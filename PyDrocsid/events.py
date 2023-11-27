@@ -18,6 +18,7 @@ from discord import (
     RawReactionClearEmojiEvent,
     RawReactionClearEvent,
     Role,
+    ScheduledEvent,
     StageChannel,
     TextChannel,
     Thread,
@@ -341,6 +342,12 @@ class Events:
     @staticmethod
     async def on_thread_join(_: Bot, thread: Thread) -> None:
         await call_event_handlers("thread_join", thread, identifier=thread.id)
+
+    @staticmethod
+    async def on_scheduled_event_update(_: Bot, before: ScheduledEvent, after: ScheduledEvent):
+        if await check_maintenance(None):
+            return
+        await call_event_handlers("scheduled_event_update", before, after, identifier=after.id)
 
 
 event_handlers: dict[str, list[Callable[..., Awaitable[None]]]] = {}
