@@ -63,7 +63,7 @@ def check_deactivation():
             await disabled_bot.change_presence(status=Status.idle, activity=Game(name=Config.BOT_MODE.bot_activity))
 
         logger.warning(
-            f"\nBot deactivated, clear contents of files {'and '.join(map(str, found))}"
+            f"\nBot deactivated, clear contents of files {' and '.join(map(str, found))}"
             f" and restart to continue!\n"
             f"Do NOT delete the files itself!\n"
             f"It will break the volume or the healthcheck!!\n"
