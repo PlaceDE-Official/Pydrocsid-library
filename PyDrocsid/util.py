@@ -1,5 +1,6 @@
 import io
 import re
+from enum import Enum
 from functools import wraps
 from socket import AF_INET, SHUT_RD, SOCK_STREAM, gethostbyname, socket, timeout
 from time import time
@@ -7,7 +8,6 @@ from typing import Any, Awaitable, Callable, List, Optional, ParamSpec, TypeVar,
 
 from discord import (
     Attachment,
-    Bot,
     CheckFailure,
     Colour,
     Embed,
@@ -22,10 +22,9 @@ from discord import (
     Role,
     TextChannel,
     User,
-    VoiceChannel,
-)
+    VoiceChannel, )
 from discord.abc import Messageable, Snowflake
-from discord.ext.commands import Context, Converter, GuildChannelConverter, check
+from discord.ext.commands import Context, Converter, GuildChannelConverter, check, Cooldown, CooldownMapping
 from discord.ext.commands.bot import Bot
 from discord.ext.commands.errors import CommandError
 
@@ -36,7 +35,6 @@ from PyDrocsid.environment import OWNER_IDS, SUDOERS
 from PyDrocsid.permission import BasePermission
 from PyDrocsid.translations import t
 from PyDrocsid.types import GuildMessageable
-
 
 t = t.g
 ZERO_WIDTH_WHITESPACE = "​"
@@ -111,7 +109,7 @@ async def is_teamler(member: Member) -> bool:
 
 
 async def check_wastebasket(
-    message: Message, member: Member, emoji: PartialEmoji, footer: str, permission: BasePermission
+        message: Message, member: Member, emoji: PartialEmoji, footer: str, permission: BasePermission
 ) -> int | None:
     """
     Check if a user has reacted with :wastebasket: on an embed originally sent by the bot and if the user
@@ -218,18 +216,18 @@ async def read_complete_message(message: Message) -> tuple[str, list[File], Embe
 
 
 async def send_editable_log(
-    channel: Messageable,
-    title: str,
-    description: str,
-    name: str,
-    value: str,
-    *,
-    colour: int | None = None,
-    inline: bool = False,
-    force_resend: bool = False,
-    force_new_embed: bool = False,
-    force_new_field: bool = False,
-    **kwargs: Any,
+        channel: Messageable,
+        title: str,
+        description: str,
+        name: str,
+        value: str,
+        *,
+        colour: int | None = None,
+        inline: bool = False,
+        force_resend: bool = False,
+        force_new_embed: bool = False,
+        force_new_field: bool = False,
+        **kwargs: Any,
 ) -> Message:
     """
     Send a log embed into a given channel which can be updated later.
@@ -297,7 +295,7 @@ def check_role_assignable(role: Role) -> None:
 
 
 def check_message_send_permissions(
-    channel: TextChannel, check_send: bool = True, check_file: bool = False, check_embed: bool = False
+        channel: TextChannel, check_send: bool = True, check_file: bool = False, check_embed: bool = False
 ) -> None:
     permissions: Permissions = channel.permissions_for(channel.guild.me)
     if not permissions.view_channel:
