@@ -42,6 +42,9 @@ def split_lines(text: str, max_size: int, *, first_max_size: int | None = None) 
         # try to find a line break within the next ms + 1 characters
         j = text.rfind("\n", i, i + ms + 1)
         if j == -1:  # no line break could be found
+            # try to find a dot and space within the next ms + 1 characters
+            j = text.rfind(". ", i, i + ms + 1) + 1
+        if j == -1:  # no line break could be found
             # try to find a space within the next ms + 1 characters
             j = text.rfind(" ", i, i + ms + 1)
 
@@ -53,7 +56,7 @@ def split_lines(text: str, max_size: int, *, first_max_size: int | None = None) 
         else:
             # split string after line break or space
             out.append(text[i:j])
-            i = j + 1  # line break or space should not be include in next substring
+            i = j + 1  # line break or space should not be included in next substring
 
         ms = max_size
 
@@ -64,7 +67,7 @@ def split_lines(text: str, max_size: int, *, first_max_size: int | None = None) 
 class EmbedLimits:
     # https://discord.com/developers/docs/resources/channel#embed-limits
     TITLE = 256
-    DESCRIPTION = 2048
+    DESCRIPTION = 4096
     URL = 2048
     THUMBNAIL_URL = 2048
     IMAGE_URL = 2048

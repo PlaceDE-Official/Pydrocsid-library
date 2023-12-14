@@ -1,6 +1,5 @@
 import io
 import re
-from enum import Enum
 from functools import wraps
 from socket import AF_INET, SHUT_RD, SOCK_STREAM, gethostbyname, socket, timeout
 from time import time
