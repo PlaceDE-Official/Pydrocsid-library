@@ -10,7 +10,6 @@ from discord import (
     InteractionResponse,
     Member,
     Message,
-    TextChannel,
     Thread,
     User,
     ui,
@@ -29,6 +28,7 @@ from PyDrocsid.events import call_event_handlers
 from PyDrocsid.material_colors import MaterialColors
 from PyDrocsid.permission import BasePermission
 from PyDrocsid.translations import t
+from PyDrocsid.types import GuildMessageable
 from PyDrocsid.util import check_maintenance, check_message_send_permissions
 
 
@@ -126,7 +126,7 @@ async def reply(
         interaction = await ctx.send_message(*args, **kwargs, ephemeral=True)
         return await interaction.original_response()
 
-    if isinstance(channel := ctx.channel if isinstance(ctx, (Message, Context)) else ctx, TextChannel):
+    if isinstance(channel := ctx.channel if isinstance(ctx, (Message, Context)) else ctx, GuildMessageable):
         try:
             check_message_send_permissions(
                 channel, check_file=bool(kwargs.get("file")), check_embed=bool(kwargs.get("embed"))
@@ -162,7 +162,7 @@ async def add_reactions(ctx: Context[Any] | Message, *emojis: str) -> None:
         for emoji in emojis:
             await message.add_reaction(name_to_emoji[emoji])
     except Forbidden:
-        if not isinstance(message.channel, (TextChannel, Thread)):
+        if not isinstance(message.channel, (GuildMessageable, Thread)):
             return
 
         await call_event_handlers("permission_error", ctx.guild, t.could_not_add_reaction(message.channel.mention))

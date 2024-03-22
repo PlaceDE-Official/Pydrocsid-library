@@ -19,7 +19,6 @@ from discord import (
     PartialEmoji,
     Permissions,
     Role,
-    TextChannel,
     User,
     VoiceChannel, )
 from discord.abc import Messageable, Snowflake
@@ -130,7 +129,7 @@ async def check_wastebasket(
     for embed in message.embeds:
         if not embed.author:
             continue
-        if embed.footer.text == Embed.Empty:
+        if embed.footer and embed.footer.text:
             continue
 
         # pattern = re.escape(footer).replace("\\ ", " ").replace("\\{\\}", "{}").format(".*? (#\d{4})|(#\d)", r"\((\d+)\)")
@@ -294,7 +293,7 @@ def check_role_assignable(role: Role) -> None:
 
 
 def check_message_send_permissions(
-        channel: TextChannel, check_send: bool = True, check_file: bool = False, check_embed: bool = False
+        channel: GuildMessageable, check_send: bool = True, check_file: bool = False, check_embed: bool = False
 ) -> None:
     permissions: Permissions = channel.permissions_for(channel.guild.me)
     if not permissions.view_channel:
@@ -331,10 +330,10 @@ class RoleListConverter(Converter[Role]):
         return out
 
 
-class DynamicVoiceConverter(Converter[Union[TextChannel, VoiceChannel]]):
+class DynamicVoiceConverter(Converter[Union[GuildMessageable, VoiceChannel]]):
     """Return a channel object depending on whether the channel is existing."""
 
-    async def convert(self, ctx: Context[Bot], arg: str) -> Optional[Union[TextChannel, VoiceChannel]]:
+    async def convert(self, ctx: Context[Bot], arg: str) -> Optional[Union[GuildMessageable, VoiceChannel]]:
         if match := re.match(r"^.*/channels/\d+/(\d+)$", arg):
             channel = ctx.guild.get_channel(int(match.group(1)))
         else:
@@ -342,6 +341,6 @@ class DynamicVoiceConverter(Converter[Union[TextChannel, VoiceChannel]]):
 
         if not channel:
             raise CommandError(f"Channel not found: {arg}")
-        if not isinstance(channel, TextChannel) and not isinstance(channel, VoiceChannel):
+        if not isinstance(channel, GuildMessageable) and not isinstance(channel, VoiceChannel):
             raise CommandError(f"Channel is not a text or voice channel: {arg}")
         return channel

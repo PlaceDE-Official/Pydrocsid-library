@@ -1,7 +1,7 @@
 from datetime import datetime
 from pathlib import Path
 
-from discord import Game, Status
+from discord import Game, Status, CustomActivity
 from discord.ext.commands import Bot, Context
 
 from PyDrocsid.config import Config
@@ -60,7 +60,10 @@ def check_deactivation():
 
         @disabled_bot.event
         async def on_ready():
-            await disabled_bot.change_presence(status=Status.idle, activity=Game(name=Config.BOT_MODE.bot_activity))
+            await disabled_bot.change_presence(
+                status=Status.idle,
+                activity=CustomActivity(name=Config.BOT_MODE.bot_activity)
+            )
 
         logger.warning(
             f"\nBot deactivated, clear contents of files {' and '.join(map(str, found))}"

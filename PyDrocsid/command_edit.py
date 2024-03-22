@@ -1,7 +1,7 @@
 import asyncio
 from typing import cast
 
-from discord import DMChannel, Forbidden, HTTPException, Message, NotFound, TextChannel, Thread
+from discord import DMChannel, Forbidden, HTTPException, Message, NotFound, Thread
 from discord.abc import GuildChannel, PrivateChannel, Snowflake
 from discord.ext.commands.bot import Bot
 from discord.ext.commands.context import Context
@@ -9,7 +9,7 @@ from discord.ext.commands.context import Context
 from PyDrocsid.environment import RESPONSE_LINK_TTL
 from PyDrocsid.logger import get_logger
 from PyDrocsid.redis_client import redis
-
+from PyDrocsid.types import GuildMessageable
 
 logger = get_logger(__name__)
 
@@ -60,7 +60,7 @@ async def handle_delete(bot: Bot, channel_id: int, message_id: int) -> None:
     await redis.delete(key)
 
     async def delete_message(chn_id: int, msg_id: int) -> None:
-        if not isinstance(chn := await _get_channel(bot, chn_id), (TextChannel, Thread, DMChannel)):
+        if not isinstance(chn := await _get_channel(bot, chn_id), (GuildMessageable, Thread, DMChannel)):
             logger.warning("could not delete message %s in unknown channel %s", msg_id, chn_id)
             return
 

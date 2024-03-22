@@ -7,8 +7,9 @@ from pathlib import Path
 from typing import Any, cast
 from urllib.request import Request, urlopen
 
+from chompjs import parse_js_object
 
-EMOJI_JSON_REGEX = re.compile(r'{("\w+":\[({"names":.+"surrogates":.+},)*{"names":.+"surrogates":.+}])+}')
+EMOJI_JSON_REGEX = re.compile(r'(\{(\w+?:\[({names:.+?:surrogates:.+?},)*?{names:.+surrogates:.+?}\])+?}}),')
 
 
 def get(url: str) -> str:
@@ -64,9 +65,14 @@ if __name__ == "__main__":
 
     for script_url in reversed(parser.urls):
         json_match = EMOJI_JSON_REGEX.search(get(script_url))
+        # if "person_in_bed_tone5" in get(script_url):   # alternative search function, if regex broken
+        #     print("🙀", script_url)
         if json_match:
             try:
-                emoji_json = json.loads(json_match.group(0))
+                text = json_match.group(1)
+                # thanks discord for using multiple encodings in one file
+                text = re.sub(r"\\x\w\w", lambda x: x[0].encode().decode("unicode-escape"), text)
+                emoji_json = parse_js_object(text)
                 break
             except JSONDecodeError as e:
                 print(

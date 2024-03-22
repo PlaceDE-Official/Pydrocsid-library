@@ -3,7 +3,6 @@ from typing import Any, cast
 
 from discord import Embed, InteractionResponse, Member, Message, User
 from discord.abc import Messageable
-from discord.embeds import EmptyEmbed
 from discord.ext.commands.context import Context
 
 from PyDrocsid.command import reply
@@ -133,7 +132,7 @@ async def send_long_embed(
     # pre checks
     if len(embed.title) > EmbedLimits.TITLE - 20 * paginate:
         raise ValueError("Embed title is too long.")
-    if len(embed.url) > EmbedLimits.URL:
+    if embed.url and len(embed.url) > EmbedLimits.URL:
         raise ValueError("Embed url is too long.")
     if embed.thumbnail and len(embed.thumbnail.url) > EmbedLimits.THUMBNAIL_URL:
         raise ValueError("Thumbnail url is too long.")
@@ -167,7 +166,7 @@ async def send_long_embed(
             cur.title = ""
             cur.remove_author()
         if not repeat_thumbnail:
-            cur.set_thumbnail(url=EmptyEmbed)
+            cur.set_thumbnail(url="")
 
         if clear_completely:
             cur.description = ""
@@ -182,7 +181,7 @@ async def send_long_embed(
     if not repeat_footer and footer:
         delattr(cur, "_footer")
     if not repeat_image:
-        cur.set_image(url=EmptyEmbed)
+        cur.set_image(url="")
 
     *parts, last = split_lines(cast(str, embed.description or ""), EmbedLimits.DESCRIPTION) or [""]
     for part in parts:
@@ -303,7 +302,7 @@ def split_message(
         # pre-checks
         if len(embed.title) > EmbedLimits.TITLE - 20:
             raise ValueError("Embed title is too long.")
-        if len(embed.url) > EmbedLimits.URL:
+        if embed.url and len(embed.url) > EmbedLimits.URL:
             raise ValueError("Embed url is too long.")
         if embed.thumbnail and len(embed.thumbnail.url) > EmbedLimits.THUMBNAIL_URL:
             raise ValueError("Thumbnail url is too long.")
@@ -337,7 +336,7 @@ def split_message(
             cur.title = ""
             cur.remove_author()
         if not repeat_thumbnail:
-            cur.set_thumbnail(url=EmptyEmbed)
+            cur.set_thumbnail(url="")
 
         if clear_completely:
             cur.description = ""
@@ -353,7 +352,7 @@ def split_message(
         if not repeat_footer and footer:
             delattr(cur, "_footer")
         if not repeat_image:
-            cur.set_image(url=EmptyEmbed)
+            cur.set_image(url="")
 
         *parts, last = split_lines(cast(str, embed.description or ""), EmbedLimits.DESCRIPTION) or [""]
         for part in parts:

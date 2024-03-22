@@ -2,7 +2,7 @@ from enum import Enum
 from functools import total_ordering
 from typing import TypeAlias
 
-from discord import TextChannel, Thread, VoiceChannel
+from discord import TextChannel, Thread, VoiceChannel, StageChannel
 
 from PyDrocsid.translations import t
 
@@ -10,8 +10,7 @@ from PyDrocsid.translations import t
 t = t.g
 
 # TODO add threads https://docs.pycord.dev/en/stable/api/utils.html#discord.utils.get_or_fetch
-# TODO add stage channels when library update
-GuildMessageable: TypeAlias = TextChannel | VoiceChannel
+GuildMessageable: TypeAlias = TextChannel | VoiceChannel | StageChannel
 
 
 @total_ordering

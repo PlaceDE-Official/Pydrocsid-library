@@ -19,8 +19,6 @@ from discord import (
     RawReactionClearEvent,
     Role,
     ScheduledEvent,
-    StageChannel,
-    TextChannel,
     Thread,
     User,
     VoiceState,
@@ -33,6 +31,7 @@ from discord.ext.commands.errors import CommandError
 from PyDrocsid.command_edit import handle_delete, handle_edit
 from PyDrocsid.database import db_wrapper
 from PyDrocsid.multilock import MultiLock
+from PyDrocsid.types import GuildMessageable
 from PyDrocsid.util import check_maintenance
 
 
@@ -61,11 +60,9 @@ async def extract_from_raw_reaction_event(bot: Bot, event: RawReactionActionEven
     channel = cast(Messageable | None, bot.get_channel(event.channel_id))
     if channel is None:
         return None
-    if isinstance(channel, StageChannel):
-        return None
 
     user: User | Member | None
-    if isinstance(channel, TextChannel):
+    if isinstance(channel, GuildMessageable):
         # guild channel
         user = channel.guild.get_member(event.user_id)
     else:
@@ -230,8 +227,6 @@ class Events:
             channel = cast(Messageable | None, bot.get_channel(event.channel_id))
             if channel is None:
                 return None
-            if isinstance(channel, StageChannel):
-                return None
 
             try:
                 message = (await channel.fetch_message(event.message_id),)
@@ -253,8 +248,6 @@ class Events:
 
             channel = cast(Messageable | None, bot.get_channel(event.channel_id))
             if channel is None:
-                return None
-            if isinstance(channel, StageChannel):
                 return None
 
             try:
