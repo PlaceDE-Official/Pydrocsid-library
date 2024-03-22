@@ -2,6 +2,7 @@ internal_error: Internal Error!
 not_allowed: You are not allowed to use this command.
 permission_denied: Permission denied!
 user_not_found: User not found.
+event_not_found: Event not found.
 role: Role
 enabled: ":white_check_mark: Enabled"
 disabled: ":x: Disabled"

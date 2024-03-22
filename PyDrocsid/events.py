@@ -342,6 +342,12 @@ class Events:
             return
         await call_event_handlers("scheduled_event_update", before, after, identifier=after.id)
 
+    @staticmethod
+    async def on_scheduled_event_delete(_: Bot, event: ScheduledEvent):
+        if await check_maintenance(None):
+            return
+        await call_event_handlers("scheduled_event_delete", event, identifier=event.id)
+
 
 event_handlers: dict[str, list[Callable[..., Awaitable[None]]]] = {}
 handler_lock = MultiLock[Any]()

@@ -142,6 +142,9 @@ class Cog(DiscordCog):
     async def on_scheduled_event_update(self, before: ScheduledEvent, after: ScheduledEvent) -> None:
         pass
 
+    async def on_scheduled_event_delete(self, event: ScheduledEvent) -> None:
+        pass
+
 
 def check_dependencies(cogs: list[Cog]) -> set[Type[Cog]]:
     """

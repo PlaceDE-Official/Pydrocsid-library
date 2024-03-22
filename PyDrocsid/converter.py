@@ -1,9 +1,9 @@
 import re
 
-from discord import Guild, HTTPException, Member, NotFound, PartialEmoji, User
+from discord import Guild, HTTPException, Member, NotFound, PartialEmoji, User, ScheduledEvent
 from discord.ext.commands import Bot
 from discord.ext.commands.context import Context
-from discord.ext.commands.converter import ColorConverter, Converter, PartialEmojiConverter
+from discord.ext.commands.converter import ColorConverter, Converter, PartialEmojiConverter, CONVERTER_MAPPING
 from discord.ext.commands.errors import BadArgument
 
 from PyDrocsid.emojis import emoji_to_name
@@ -11,6 +11,8 @@ from PyDrocsid.translations import t
 
 
 t = t.g
+
+
 
 
 class EmojiConverter(PartialEmojiConverter):
@@ -60,3 +62,29 @@ class UserMemberConverter(Converter[User | Member]):
             return await ctx.bot.fetch_user(user_id)
         except (NotFound, HTTPException):
             raise BadArgument(t.user_not_found)
+
+
+class ScheduledEventConverter(Converter[ScheduledEvent]):
+    """Return a scheduled event."""
+
+    async def convert(self, ctx: Context[Bot], argument: str) -> ScheduledEvent:
+        guild: Guild = ctx.bot.guilds[0]
+
+        for event in guild.scheduled_events:
+            if event.name == argument:
+                return event
+
+        if not (match := re.match(r"^(<@!?)?([0-9]{15,20})(?(1)>)$", argument)):
+            raise BadArgument(t.event_not_found)
+
+        # find user/member by id
+        event_id: int = int(match.group(2))
+        if event := guild.get_scheduled_event(event_id):
+            return event
+        try:
+            return await guild.fetch_scheduled_event(event_id)
+        except (NotFound, HTTPException):
+            raise BadArgument(t.event_not_found)
+
+
+CONVERTER_MAPPING.update({ScheduledEvent: ScheduledEventConverter})
