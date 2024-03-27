@@ -146,9 +146,9 @@ async def send_long_embed(
     if embed.author:
         if len(embed.author.name) > EmbedLimits.AUTHOR_NAME:
             raise ValueError("Author name is too long.")
-        if len(embed.author.url) > EmbedLimits.AUTHOR_URL:
+        if embed.author.url and len(embed.author.url) > EmbedLimits.AUTHOR_URL:
             raise ValueError("Author url is too long.")
-        if len(embed.author.icon_url) > EmbedLimits.AUTHOR_ICON_URL:
+        if embed.author.icon_url and len(embed.author.icon_url) > EmbedLimits.AUTHOR_ICON_URL:
             raise ValueError("Author icon_url is too long.")
     for i, field in enumerate(embed.fields):
         if len(field.name) > EmbedLimits.FIELD_NAME:
@@ -316,9 +316,9 @@ def split_message(
         if embed.author:
             if len(embed.author.name) > EmbedLimits.AUTHOR_NAME:
                 raise ValueError("Author name is too long.")
-            if len(embed.author.url) > EmbedLimits.AUTHOR_URL:
+            if embed.author.url and len(embed.author.url) > EmbedLimits.AUTHOR_URL:
                 raise ValueError("Author url is too long.")
-            if len(embed.author.icon_url) > EmbedLimits.AUTHOR_ICON_URL:
+            if embed.author.icon_url and len(embed.author.icon_url) > EmbedLimits.AUTHOR_ICON_URL:
                 raise ValueError("Author icon_url is too long.")
         for i, field in enumerate(embed.fields):
             if len(field.name) > EmbedLimits.FIELD_NAME:
