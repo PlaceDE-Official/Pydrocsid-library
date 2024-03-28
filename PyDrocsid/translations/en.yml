@@ -1,4 +1,8 @@
-internal_error: Internal Error!
+internal_error: |
+  Internal Error!
+  This should never happen.
+  Please tell the administrators about this error, so it can be fixed.
+  Thank you!
 not_allowed: You are not allowed to use this command.
 permission_denied: Permission denied!
 user_not_found: User not found.
