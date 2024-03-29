@@ -139,9 +139,9 @@ async def send_long_embed(
     if embed.image and len(embed.image.url) > EmbedLimits.IMAGE_URL:
         raise ValueError("Image url is too long.")
     if embed.footer:
-        if len(embed.footer.text) > EmbedLimits.FOOTER_TEXT:
+        if embed.footer.text and len(embed.footer.text) > EmbedLimits.FOOTER_TEXT:
             raise ValueError("Footer text is too long.")
-        if len(embed.footer.icon_url) > EmbedLimits.FOOTER_ICON_URL:
+        if embed.footer.icon_url and len(embed.footer.icon_url) > EmbedLimits.FOOTER_ICON_URL:
             raise ValueError("Footer icon_url is too long.")
     if embed.author:
         if len(embed.author.name) > EmbedLimits.AUTHOR_NAME:
@@ -309,9 +309,9 @@ def split_message(
         if embed.image and len(embed.image.url) > EmbedLimits.IMAGE_URL:
             raise ValueError("Image url is too long.")
         if embed.footer:
-            if len(embed.footer.text) > EmbedLimits.FOOTER_TEXT:
+            if embed.footer.text and len(embed.footer.text) > EmbedLimits.FOOTER_TEXT:
                 raise ValueError("Footer text is too long.")
-            if len(embed.footer.icon_url) > EmbedLimits.FOOTER_ICON_URL:
+            if embed.footer.icon_url and len(embed.footer.icon_url) > EmbedLimits.FOOTER_ICON_URL:
                 raise ValueError("Footer icon_url is too long.")
         if embed.author:
             if len(embed.author.name) > EmbedLimits.AUTHOR_NAME:
