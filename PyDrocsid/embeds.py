@@ -130,7 +130,7 @@ async def send_long_embed(
     max_total: int = EmbedLimits.TOTAL - 20 * paginate
 
     # pre checks
-    if len(embed.title) > EmbedLimits.TITLE - 20 * paginate:
+    if embed.title and len(embed.title) > EmbedLimits.TITLE - 20 * paginate:
         raise ValueError("Embed title is too long.")
     if embed.url and len(embed.url) > EmbedLimits.URL:
         raise ValueError("Embed url is too long.")
@@ -300,7 +300,7 @@ def split_message(
 
     for embed in embeds:
         # pre-checks
-        if len(embed.title) > EmbedLimits.TITLE - 20:
+        if embed.title and len(embed.title) > EmbedLimits.TITLE - 20:
             raise ValueError("Embed title is too long.")
         if embed.url and len(embed.url) > EmbedLimits.URL:
             raise ValueError("Embed url is too long.")
