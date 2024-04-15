@@ -129,7 +129,7 @@ async def check_wastebasket(
     for embed in message.embeds:
         if not embed.author:
             continue
-        if embed.footer and embed.footer.text:
+        if embed.footer and not embed.footer.text:
             continue
 
         # pattern = re.escape(footer).replace("\\ ", " ").replace("\\{\\}", "{}").format(".*? (#\d{4})|(#\d)", r"\((\d+)\)")
