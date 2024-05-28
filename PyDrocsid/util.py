@@ -217,8 +217,7 @@ async def send_editable_log(
         channel: Messageable,
         title: str,
         description: str,
-        name: str,
-        value: str,
+        fields: list[tuple[str, str]],
         *,
         colour: int | None = None,
         inline: bool = False,
@@ -233,8 +232,7 @@ async def send_editable_log(
     :param channel: the channel into which the messages should be sent
     :param title: the embed title
     :param description: the embed description
-    :param name: the field name
-    :param value: the field value
+    :param fields: the fields names and values
     :param colour: the embed color
     :param inline: inline parameter of embed field
     :param force_resend: whether to force a resend of the embed instead of editing it
@@ -243,24 +241,29 @@ async def send_editable_log(
     """
 
     messages: list[Message] = await channel.history(limit=1).flatten()
+    edited = False
     if messages and messages[0].embeds and not force_new_embed:  # can extend last embed
         embed: Embed = messages[0].embeds[0]
 
         # if name or description don't match, a new embed must be created
         if (embed.title or "") == title and (embed.description or "") == description:
 
-            if embed.fields and embed.fields[-1].name == name and not force_new_field:
-                # can edit last field
-                embed.set_field_at(index=-1, name=name, value=value, inline=inline)
-            elif len(embed.fields) < 25:
-                # can't edit last field -> create a new one
-                embed.add_field(name=name, value=value, inline=inline)
-            else:
-                # can't edit last field, can't create a new one -> create a new embed
-                force_new_embed = True
+            for name, value in fields:
+                if embed.fields and embed.fields[-1].name == name and not force_new_field:
+                    # can edit last field
+                    embed.set_field_at(index=-1, name=name, value=value, inline=inline)
+                    edited = True
+                elif len(embed.fields) < 25:
+                    # can't edit last field -> create a new one
+                    embed.add_field(name=name, value=value, inline=inline)
+                    edited = True
+                else:
+                    # can't edit last field, can't create a new one -> create a new embed
+                    force_new_embed = True
+                    edited = True
 
-            if colour is not None:
-                embed.colour = Colour(colour)
+                if colour is not None:
+                    embed.colour = Colour(colour)
 
             # update embed
             if not force_new_embed:
@@ -269,11 +272,18 @@ async def send_editable_log(
                     return await channel.send(embed=embed, **kwargs)
                 await messages[0].edit(embed=embed, **kwargs)
                 return messages[0]
+            elif edited:
+                if force_resend:
+                    await messages[0].delete()
+                    await channel.send(embed=embed, **kwargs)
+                await messages[0].edit(embed=embed, **kwargs)
 
     # create and send a new embed
     embed = Embed(title=title, description=description, colour=colour if colour is not None else 0x008080)
-    embed.add_field(name=name, value=value, inline=inline)
-    return await channel.send(embed=embed)
+    for name, value in fields:
+        embed.add_field(name=name, value=value, inline=inline)
+    from PyDrocsid.embeds import send_long_embed
+    return (await send_long_embed(channel, embed, repeat_title=True))[0]
 
 
 def check_role_assignable(role: Role) -> None:
