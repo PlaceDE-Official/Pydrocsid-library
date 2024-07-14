@@ -374,7 +374,8 @@ def split_message(
 
             # check whether field fits in just one embed
             total_size_one_embed = field_length
-            total_size_one_embed += len(cur.title)
+            if cur.title:
+                total_size_one_embed += len(cur.title)
             if cur.author:
                 total_size_one_embed += len(cur.author.name)
             if cur.footer:

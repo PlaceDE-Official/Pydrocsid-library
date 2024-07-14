@@ -44,7 +44,7 @@ class Config:
     REPO_LINK: str
     REPO_ICON: str
 
-    BOT_MODE: BotMode
+    BOT_MODE: BotMode = BotMode.NORMAL
     VOLUME_PATH: str
 
     # pydrocsid information

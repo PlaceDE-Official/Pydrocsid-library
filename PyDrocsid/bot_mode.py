@@ -5,7 +5,9 @@ from discord import Game, Status, CustomActivity
 from discord.ext.commands import Bot, Context
 
 from PyDrocsid.config import Config
+from PyDrocsid.database import db_wrapper
 from PyDrocsid.logger import get_logger
+from PyDrocsid.settings import SettingsModel
 from PyDrocsid.translations import t
 from PyDrocsid.types import BotMode
 
@@ -75,7 +77,9 @@ def check_deactivation():
         disabled_bot.run(TOKEN)
 
 
-def write_status(text):
+@db_wrapper
+async def write_status(text, bot_mode):
+    await SettingsModel.set(str, "bot_mode", bot_mode.value, True)
     for path_string in ["health", Config.VOLUME_PATH]:
         try:
             path = Path(path_string)

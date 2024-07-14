@@ -34,10 +34,14 @@ class SettingsModel(Base):
 
     @staticmethod
     @lock_deco
-    async def get(dtype: Type[Value], key: str, default: Value) -> Value:
+    async def get(dtype: Type[Value], key: str, default: Value, ignore_redis: bool = False) -> Value:
         """Get the value of a given setting."""
 
-        if (out := await redis.get(rkey := f"settings:{key}")) is None:
+        if ignore_redis:
+            if (row := await db.get(SettingsModel, key=key)) is None:
+                row = await SettingsModel._create(key, default)
+            out = row.value  # type: ignore
+        elif (out := await redis.get(rkey := f"settings:{key}")) is None:
             if (row := await db.get(SettingsModel, key=key)) is None:
                 row = await SettingsModel._create(key, default)
             out = row.value  # type: ignore
@@ -47,8 +51,15 @@ class SettingsModel(Base):
 
     @staticmethod
     @lock_deco
-    async def set(dtype: Type[Value], key: str, value: Value) -> SettingsModel:
+    async def set(dtype: Type[Value], key: str, value: Value, ignore_redis: bool = False) -> SettingsModel:
         """Set the value of a given setting."""
+
+        if ignore_redis:
+            if (row := await db.get(SettingsModel, key=key)) is None:
+                row = await SettingsModel._create(key, value)
+                return row
+            row.value = str(int(value) if dtype is bool else value)
+            return row
 
         rkey = f"settings:{key}"
         if (row := await db.get(SettingsModel, key=key)) is None:

@@ -1,6 +1,8 @@
 import io
 import re
+from datetime import datetime
 from functools import wraps
+from pathlib import Path
 from socket import AF_INET, SHUT_RD, SOCK_STREAM, gethostbyname, socket, timeout
 from time import time
 from typing import Any, Awaitable, Callable, List, Optional, ParamSpec, TypeVar, Union, cast
@@ -97,6 +99,17 @@ async def check_maintenance(user: Member | User | None):
             return t.maintenance_text
         return False
     return "Bot deactivated!"
+
+
+def write_healthcheck():
+    with open(Path("health"), "r") as f:
+        data = f.readlines()
+    if data and data[0].strip().isnumeric():
+        data[0] = str(int(datetime.now().timestamp())) + "\n"
+    else:
+        data = [str(int(datetime.now().timestamp())) + "\n"] + data
+    with open(Path("health"), "w+") as f:
+        f.writelines(data)
 
 
 # TODO remove
