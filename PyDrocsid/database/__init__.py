@@ -44,6 +44,7 @@ def db_wrapper(f: Callable[P, Awaitable[T]]) -> Callable[P, Awaitable[T]]:
                     logger.get_logger("database").warning("Database not usable anymore (1047 or 1180)")
                     os.kill(os.getpid(), signal.SIGTERM)
                     exit(1)
+                raise
 
     return inner
 
