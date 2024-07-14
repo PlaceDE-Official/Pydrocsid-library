@@ -47,3 +47,5 @@ REPLY: bool = get_bool("REPLY", True)
 MENTION_AUTHOR: bool = get_bool("MENTION_AUTHOR", True)
 
 DISABLE_PAGINATION: bool = get_bool("DISABLE_PAGINATION", False)
+CLUSTER_NODE: str = getenv("CLUSTER_NODE", None)
+CLUSTER_NODE_ORDER: list[str] = [x for x in map(lambda x: x.strip().lower(), getenv("CLUSTER_NODE_ORDER", "").split(",")) if x]
