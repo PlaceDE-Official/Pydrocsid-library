@@ -7,7 +7,7 @@ from typing import Any, Awaitable, Callable, Type, cast
 from urllib.parse import urljoin
 
 from discord import Guild, Invite, Member, Message, PartialEmoji, RawMessageDeleteEvent, Role, Thread, VoiceState, \
-    ScheduledEvent
+    ScheduledEvent, AuditLogEntry, RawAuditLogEntryEvent
 from discord.abc import Messageable, User
 from discord.ext.commands.bot import Bot
 from discord.ext.commands.cog import Cog as DiscordCog
@@ -143,6 +143,12 @@ class Cog(DiscordCog):
         pass
 
     async def on_scheduled_event_delete(self, event: ScheduledEvent) -> None:
+        pass
+
+    async def on_audit_log_entry(self, entry: AuditLogEntry) -> None:
+        pass
+
+    async def on_raw_audit_log_entry(self, entry: RawAuditLogEntryEvent):
         pass
 
 

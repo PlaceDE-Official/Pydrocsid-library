@@ -21,7 +21,7 @@ from discord import (
     ScheduledEvent,
     Thread,
     User,
-    VoiceState,
+    VoiceState, AuditLogEntry, RawAuditLogEntryEvent,
 )
 from discord.abc import Messageable
 from discord.ext.commands.bot import Bot
@@ -347,6 +347,18 @@ class Events:
         if await check_maintenance(None):
             return
         await call_event_handlers("scheduled_event_delete", event, identifier=event.id)
+
+    @staticmethod
+    async def on_audit_log_entry(_: Bot, entry: AuditLogEntry):
+        if await check_maintenance(entry.user):
+            return
+        await call_event_handlers("audit_log_entry", entry, identifier=entry.id)
+
+    @staticmethod
+    async def on_raw_audit_log_entry(_: Bot, entry: RawAuditLogEntryEvent):
+        if await check_maintenance(None):
+            return
+        await call_event_handlers("raw_audit_log_entry", entry, identifier=entry.id)
 
 
 event_handlers: dict[str, list[Callable[..., Awaitable[None]]]] = {}
