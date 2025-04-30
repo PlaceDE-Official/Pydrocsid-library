@@ -11,7 +11,7 @@ packages = [{ include = "PyDrocsid" }]
 include = ["PyDrocsid/emoji_map.json", "PyDrocsid/material_colors.yml", "PyDrocsid/translations/*"]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = ">=3.11 <3.12"
 py-cord = "^2.5.0"
 SQLAlchemy = "^1.4.32"
 PyYAML = "^6.0"
@@ -50,8 +50,8 @@ pre-commit = ["lint"]
 [tool.poe.tasks.setup]
 shell = """
 set -ex
-poetry install --no-root
-./pre-commit.sh install
+python -m poetry install --no-root
+#./pre-commit.sh install
 """
 interpreter = "bash"
 

@@ -43,7 +43,7 @@ def db_wrapper(f: Callable[P, Awaitable[T]]) -> Callable[P, Awaitable[T]]:
                 if e.args and "1047," in e.args[0] or "1180," in e.args[0]:
                     logger.get_logger("database").warning("Database not usable anymore (1047 or 1180)")
                     os.kill(os.getpid(), signal.SIGTERM)
-                    exit(1)
+                    exit(42)
                 raise
 
     return inner
