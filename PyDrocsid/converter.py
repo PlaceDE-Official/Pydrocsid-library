@@ -19,10 +19,27 @@ class EmojiConverter(PartialEmojiConverter):
     """Emoji converter which also supports unicode emojis."""
 
     async def convert(self, ctx: Context[Bot], argument: str) -> PartialEmoji:
-        try:
-            return await super().convert(ctx, argument)
-        except BadArgument:
-            pass
+        # use custom version, because we want to use application emojis, which can not be typed by the user,
+        # when using <:name:id>, because discord parses that wrongly
+
+        #try:
+        #    return await super().convert(ctx, argument)
+        #except BadArgument:
+        #    pass
+
+        match = re.match(r"<?(a?):(\w{1,32}):([0-9]{15,20})>?$", argument)
+
+        if match:
+            emoji_animated = bool(match.group(1))
+            emoji_name = match.group(2)
+            emoji_id = int(match.group(3))
+
+            return PartialEmoji.with_state(
+                ctx.bot._connection,  # noqa
+                animated=emoji_animated,
+                name=emoji_name,
+                id=emoji_id,
+            )
 
         if argument not in emoji_to_name:
             raise BadArgument
