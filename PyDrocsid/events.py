@@ -1,6 +1,6 @@
 import json
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import partial
 from typing import Any, Awaitable, Callable, Coroutine, Iterable, ParamSpec, TypeVar, cast
 
@@ -27,6 +27,7 @@ from discord.abc import Messageable
 from discord.ext.commands.bot import Bot
 from discord.ext.commands.context import Context
 from discord.ext.commands.errors import CommandError
+from discord.utils import utcnow
 
 from PyDrocsid.command_edit import handle_delete, handle_edit
 from PyDrocsid.database import db_wrapper
@@ -156,6 +157,9 @@ class Events:
         ):
             return
 
+        if after and (not after.edited_at or after.edited_at < utcnow() - timedelta(hours=48)):
+            return
+
         await handle_edit(bot, after)
 
         await call_event_handlers("message_edit", before, after, identifier=after.id)
@@ -180,6 +184,9 @@ class Events:
             try:
                 message: Message = await channel.fetch_message(event.message_id)
             except NotFound:
+                return None
+
+            if not message.edited_at or message.edited_at < utcnow() - timedelta(hours=48):
                 return None
 
             if await check_maintenance(message.author):
