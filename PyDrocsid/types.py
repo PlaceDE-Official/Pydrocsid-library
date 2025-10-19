@@ -10,7 +10,7 @@ from PyDrocsid.translations import t
 t = t.g
 
 # TODO add threads https://docs.pycord.dev/en/stable/api/utils.html#discord.utils.get_or_fetch
-GuildMessageable: TypeAlias = TextChannel | VoiceChannel | StageChannel
+GuildMessageable: TypeAlias = TextChannel | VoiceChannel | StageChannel | Thread
 
 
 @total_ordering
