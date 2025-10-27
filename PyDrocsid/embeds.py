@@ -42,7 +42,7 @@ def split_lines(text: str, max_size: int, *, first_max_size: int | None = None) 
         j = text.rfind("\n", i, i + ms + 1)
         if j == -1:  # no line break could be found
             # try to find a dot and space within the next ms + 1 characters
-            j = text.rfind(". ", i, i + ms + 1) + 1
+            j = text.rfind(". ", i, i + ms + 1)
         if j == -1:  # no line break could be found
             # try to find a space within the next ms + 1 characters
             j = text.rfind(" ", i, i + ms + 1)
