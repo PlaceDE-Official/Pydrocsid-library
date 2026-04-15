@@ -17,18 +17,15 @@ P = ParamSpec("P")
 @asynccontextmanager
 async def db_context() -> AsyncIterator[None]:
     """Async context manager for database sessions."""
-    do_exit = False
-
     db.create_session()
     try:
         yield
-    except SystemExit:
-        do_exit = True
+        await db.commit()
+    except:
+        await db.session.rollback()
         raise
     finally:
-        if not do_exit:
-            await db.commit()
-            await db.close()
+        await db.close()
 
 
 def db_wrapper(f: Callable[P, Awaitable[T]]) -> Callable[P, Awaitable[T]]:
