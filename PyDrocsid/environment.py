@@ -49,3 +49,6 @@ MENTION_AUTHOR: bool = get_bool("MENTION_AUTHOR", True)
 DISABLE_PAGINATION: bool = get_bool("DISABLE_PAGINATION", False)
 CLUSTER_NODE: str = getenv("CLUSTER_NODE", None)
 CLUSTER_NODE_ORDER: list[str] = [x for x in map(lambda x: x.strip().lower(), getenv("CLUSTER_NODE_ORDER", "").split(",")) if x]
+CLUSTER_HEARTBEAT_TIMEOUT: int = int(getenv("CLUSTER_HEARTBEAT_TIMEOUT", 5))
+CLUSTER_SQL_TIMEOUT: int = int(getenv("CLUSTER_SQL_TIMEOUT", 5))
+CLUSTER_WEBHOOK_LOG_URL = getenv("CLUSTER_WEBHOOK_LOG_URL")
