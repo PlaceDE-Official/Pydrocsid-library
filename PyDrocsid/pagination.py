@@ -4,6 +4,7 @@ from typing import Any
 
 from discord import ButtonStyle, Embed, Interaction, InteractionResponse, Member, Message, User, ui
 from discord.abc import Messageable
+from discord.commands import ApplicationContext
 
 from PyDrocsid.command import MaintenanceAwareView, reply
 from PyDrocsid.environment import PAGINATION_TTL
@@ -49,7 +50,9 @@ class Paginator(MaintenanceAwareView):
                 button.disabled = True
             self.add_item(button)
 
-    async def reply(self, channel: Message | Messageable | InteractionResponse, **kwargs: Any) -> Message:
+    async def reply(
+        self, channel: Message | Messageable | InteractionResponse | ApplicationContext, **kwargs: Any
+    ) -> Message:
         self._update_buttons()
         self.message = await reply(channel, embed=self.pages[self.page], view=self, **kwargs)
         return self.message
@@ -84,7 +87,10 @@ class Paginator(MaintenanceAwareView):
 
 
 async def create_pagination(
-    channel: Message | Messageable | InteractionResponse, user: User | Member | None, embeds: list[Embed], **kwargs: Any
+    channel: Message | Messageable | InteractionResponse | ApplicationContext,
+    user: User | Member | None,
+    embeds: list[Embed],
+    **kwargs: Any,
 ) -> Message:
     """
     Create embed pagination on a message.

@@ -3,6 +3,7 @@ from typing import Any, cast
 
 from discord import Embed, InteractionResponse, Member, Message, User
 from discord.abc import Messageable
+from discord.commands import ApplicationContext
 from discord.ext.commands.context import Context
 
 from PyDrocsid.command import reply
@@ -82,7 +83,7 @@ class EmbedLimits:
 
 
 async def send_long_embed(
-    channel: Messageable | Message | InteractionResponse,
+    channel: Messageable | Message | InteractionResponse | ApplicationContext,
     embed: Embed,
     *,
     content: str | None = None,
@@ -259,7 +260,7 @@ async def send_long_embed(
         ]
     else:
         # create pagination
-        if not pagination_user and isinstance(channel, (Message, Context)):
+        if not pagination_user and isinstance(channel, (Message, Context, ApplicationContext)):
             pagination_user = channel.author
 
         messages = [await create_pagination(channel, pagination_user, embeds, **kwargs)]

@@ -17,13 +17,14 @@ from discord import (
     RawReactionActionEvent,
     RawReactionClearEmojiEvent,
     RawReactionClearEvent,
-    Role,
     ScheduledEvent,
     Thread,
     User,
     VoiceState, AuditLogEntry, RawAuditLogEntryEvent,
+    DiscordException,
 )
 from discord.abc import Messageable
+from discord.commands import ApplicationContext
 from discord.ext.commands.bot import Bot
 from discord.ext.commands.context import Context
 from discord.ext.commands.errors import CommandError
@@ -332,6 +333,10 @@ class Events:
     @staticmethod
     async def on_command_error(_: Bot, ctx: Context[Bot], error: CommandError) -> None:
         await call_event_handlers("command_error", ctx, error, identifier=ctx.message.id)
+
+    @staticmethod
+    async def on_application_command_error(_: Bot, ctx: ApplicationContext, error: DiscordException) -> None:
+        await call_event_handlers("application_command_error", ctx, error, identifier=ctx.interaction.id)
 
     @staticmethod
     async def on_thread_create(_: Bot, thread: Thread) -> None:

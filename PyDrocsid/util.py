@@ -24,7 +24,7 @@ from discord import (
     User,
     VoiceChannel, )
 from discord.abc import Messageable, Snowflake
-from discord.ext.commands import Context, Converter, GuildChannelConverter, check, Cooldown, CooldownMapping
+from discord.ext.commands import Context, Converter, GuildChannelConverter, check
 from discord.ext.commands.bot import Bot
 from discord.ext.commands.errors import CommandError
 
@@ -55,9 +55,9 @@ def is_sudoer_deco(ctx: Context):
     return True
 
 
-def is_sudoer(ctx: Context | User | Member) -> bool:
-    user_id = ctx.author.id if isinstance(ctx, Context) else ctx.id
-    if isinstance(ctx, Context) and ctx.guild and ctx.guild.owner_id == user_id:
+def is_sudoer(ctx: Context | User | Member | Any) -> bool:
+    user_id = ctx.author.id if hasattr(ctx, "author") else ctx.id
+    if hasattr(ctx, "guild") and ctx.guild and ctx.guild.owner_id == user_id:
         return True
 
     if user_id not in SUDOERS:

@@ -15,6 +15,7 @@ from discord import (
     ui,
 )
 from discord.abc import Messageable
+from discord.commands import ApplicationContext
 from discord.ext.commands.bot import Bot
 from discord.ext.commands.context import Context
 from discord.ext.commands.core import Command
@@ -110,7 +111,7 @@ async def can_run_command(command: Command[Cog, Any, Any], ctx: Context[Bot]) ->
 
 
 async def reply(
-    ctx: Message | Messageable | InteractionResponse, *args: Any, no_reply: bool = False, **kwargs: Any
+    ctx: Message | Messageable | InteractionResponse | ApplicationContext, *args: Any, no_reply: bool = False, **kwargs: Any
 ) -> Message:
     """
     Reply to a message and link response to this message.
@@ -121,6 +122,12 @@ async def reply(
     :param kwargs: keyword arguments to pass to ctx.send/ctx.reply
     :return: the message that was sent
     """
+
+    if isinstance(ctx, ApplicationContext):
+        res = await ctx.respond(*args, **kwargs)
+        if isinstance(res, Interaction):
+            return await res.original_response()
+        return res
 
     if isinstance(ctx, InteractionResponse):
         interaction = await ctx.send_message(*args, **kwargs, ephemeral=True)
@@ -207,12 +214,15 @@ class Confirmation(MaintenanceAwareView):
         self._result: bool | None = None
 
     async def run(
-        self, channel: Message | Messageable | InteractionResponse, text: str | None = None, **kwargs: Any
+        self,
+        channel: Message | Messageable | InteractionResponse | ApplicationContext,
+        text: str | None = None,
+        **kwargs: Any,
     ) -> bool:
         if text:
             kwargs["embed"] = Embed(title=t.confirmation, description=text)
 
-        if not self._user and isinstance(channel, (Message, Context)):
+        if not self._user and isinstance(channel, (Message, Context, ApplicationContext)):
             self._user = channel.author
         if not self._user:
             raise ValueError("Confirmation must have a user")
@@ -257,7 +267,9 @@ class Confirmation(MaintenanceAwareView):
         for button in buttons:
             self.add_item(button)
 
-    async def _reply(self, channel: Message | Messageable | InteractionResponse, **kwargs: Any) -> Message | None:
+    async def _reply(
+        self, channel: Message | Messageable | InteractionResponse | ApplicationContext, **kwargs: Any
+    ) -> Message | None:
         msg = await reply(channel, view=self, **kwargs)
         self._msg = channel if isinstance(channel, InteractionResponse) else msg
         return msg
