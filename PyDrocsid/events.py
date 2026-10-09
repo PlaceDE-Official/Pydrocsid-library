@@ -22,6 +22,7 @@ from discord import (
     User,
     VoiceState, AuditLogEntry, RawAuditLogEntryEvent,
     DiscordException,
+    Interaction,
 )
 from discord.abc import Messageable
 from discord.commands import ApplicationContext
@@ -337,6 +338,16 @@ class Events:
     @staticmethod
     async def on_application_command_error(_: Bot, ctx: ApplicationContext, error: DiscordException) -> None:
         await call_event_handlers("application_command_error", ctx, error, identifier=ctx.interaction.id)
+
+    @staticmethod
+    async def on_interaction(bot: Bot, interaction: Interaction) -> None:
+        if maintenance := await check_maintenance(interaction.user):
+            if not interaction.response.is_done():
+                await interaction.response.send_message(maintenance, ephemeral=True)
+            return
+        if not await call_event_handlers("interaction", interaction, identifier=interaction.id):
+            return
+        await bot.process_application_commands(interaction)
 
     @staticmethod
     async def on_thread_create(_: Bot, thread: Thread) -> None:

@@ -102,14 +102,26 @@ async def check_maintenance(user: Member | User | None):
 
 
 def write_healthcheck():
-    with open(Path("health"), "r") as f:
-        data = f.readlines()
+    health_file = Path("health")
+    data = []
+    if health_file.exists():
+        try:
+            with open(health_file, "r") as f:
+                data = f.readlines()
+        except OSError:
+            data = []
+
+    timestamp_line = str(int(datetime.now().timestamp())) + "\n"
     if data and data[0].strip().isnumeric():
-        data[0] = str(int(datetime.now().timestamp())) + "\n"
+        data[0] = timestamp_line
     else:
-        data = [str(int(datetime.now().timestamp())) + "\n"] + data
-    with open(Path("health"), "w+") as f:
-        f.writelines(data)
+        data = [timestamp_line] + data
+
+    try:
+        with open(health_file, "w+") as f:
+            f.writelines(data)
+    except OSError:
+        pass
 
 
 # TODO remove

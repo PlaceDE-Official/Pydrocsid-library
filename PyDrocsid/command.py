@@ -101,12 +101,14 @@ def make_error(message: str, user: User | Member | None = None) -> Embed:
     return embed
 
 
-async def can_run_command(command: Command[Cog, Any, Any], ctx: Context[Bot]) -> bool:
+async def can_run_command(command: Any, ctx: Any) -> bool:
     """Return whether a command can be executed in a given context."""
 
     try:
-        return await command.can_run(ctx)
-    except CommandError:
+        if hasattr(command, "can_run"):
+            return bool(await command.can_run(ctx))
+        return True
+    except Exception:
         return False
 
 

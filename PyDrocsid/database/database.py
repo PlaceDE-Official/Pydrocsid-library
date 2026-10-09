@@ -16,6 +16,15 @@ from sqlalchemy.sql.expression import exists as sa_exists
 from sqlalchemy.sql.functions import count
 from sqlalchemy.sql.selectable import Exists, Select
 
+try:
+    from sqlalchemy.dialects.mysql.aiomysql import AsyncAdapt_aiomysql_connection
+
+    AsyncAdapt_aiomysql_connection.ping = (
+        lambda self, reconnect=True: self.await_(self._connection.ping(reconnect))
+    )
+except ImportError:
+    pass
+
 from ..environment import (
     DB_DATABASE,
     DB_DRIVER,

@@ -111,7 +111,10 @@ def load_pydrocsid_info(config: dict[str, Any]) -> None:
 def load_language(config: dict[str, Any]) -> None:
     """Load language configuration."""
 
-    if (lang := getenv("LANGUAGE", config["default_language"])) not in config["languages"]:
+    lang = getenv("LANGUAGE") or config.get("default_language")
+    if lang not in config.get("languages", []):
+        lang = config.get("default_language")
+    if lang not in config.get("languages", []):
         raise ValueError(f"unknown language: {lang}")
     Translations.LANGUAGE = lang
 
