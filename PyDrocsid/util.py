@@ -60,6 +60,9 @@ def is_sudoer(ctx: Context | User | Member | Any) -> bool:
     if hasattr(ctx, "guild") and ctx.guild and ctx.guild.owner_id == user_id:
         return True
 
+    if user_id in OWNER_IDS:
+        return True
+
     if user_id not in SUDOERS:
         return False
     return True

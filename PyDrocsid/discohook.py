@@ -8,7 +8,7 @@ import re
 from typing import Any, NamedTuple, cast
 
 from discord import Embed, Message
-from httpx import AsyncClient
+from httpx import AsyncClient, HTTPError
 from six import text_type
 
 from PyDrocsid.redis_client import redis
@@ -92,35 +92,39 @@ async def _load_discohook_data(link: str) -> Any:
     if out := await redis.get(key := f"discohook:data:{hashlib.sha256(link.encode()).hexdigest()[:16]}"):
         return json.loads(out)
 
-    client: AsyncClient
-    async with AsyncClient() as client:
-        if not link.startswith("https://"):
-            raise DiscoHookError("Invalid link")
-        response = await client.head(link, follow_redirects=True)
-        if response.is_error:
-            raise DiscoHookError("Invalid link")
+    if not link.startswith("https://"):
+        raise DiscoHookError("Invalid link")
 
-        url = str(response.url)
-
-    if match := re.match(r"^https://discohook.(org|app)/\?data=([a-zA-Z\d\-_]+)$", url):
-        try:
-            data = json.loads(base64.urlsafe_b64decode(match[2] + "=="))
-        except (binascii.Error, UnicodeDecodeError, json.JSONDecodeError):
-            raise DiscoHookError("Invalid link")
-
-    elif match := re.match(r"^https://discohook.app/\?share=([a-zA-Z\d\-_]+)$", url):
-        client: AsyncClient
-        async with AsyncClient() as client:
-            response = await client.get(f"https://discohook.app/api/v1/share/{match[1]}", follow_redirects=True)
+    try:
+        async with AsyncClient(timeout=10.0) as client:
+            response = await client.head(link, follow_redirects=True)
             if response.is_error:
                 raise DiscoHookError("Invalid link")
 
+            url = str(response.url)
+
+        if match := re.match(r"^https://discohook.(org|app)/\?data=([a-zA-Z\d\-_]+)$", url):
             try:
-                data = json.loads(str(response.text)).get("data")
-            except json.JSONDecodeError:
+                data = json.loads(base64.urlsafe_b64decode(match[2] + "=="))
+            except (binascii.Error, UnicodeDecodeError, json.JSONDecodeError):
                 raise DiscoHookError("Invalid link")
-    else:
-        raise DiscoHookError("Invalid link")
+
+        elif match := re.match(r"^https://discohook.app/\?share=([a-zA-Z\d\-_]+)$", url):
+            async with AsyncClient(timeout=10.0) as client:
+                response = await client.get(f"https://discohook.app/api/v1/share/{match[1]}", follow_redirects=True)
+                if response.is_error:
+                    raise DiscoHookError("Invalid link")
+
+                try:
+                    data = json.loads(str(response.text)).get("data")
+                except json.JSONDecodeError:
+                    raise DiscoHookError("Invalid link")
+        else:
+            raise DiscoHookError("Invalid link")
+    except (HTTPError, Exception) as e:
+        if isinstance(e, DiscoHookError):
+            raise
+        raise DiscoHookError("Invalid link") from e
 
     await redis.setex(key, TTL, json_data := json.dumps(data))
     await redis.setex(f"discohook:link:{hashlib.sha256(json_data.encode()).hexdigest()[:16]}", TTL, url)

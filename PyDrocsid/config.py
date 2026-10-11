@@ -124,6 +124,15 @@ async def _get_permission_level(
 ) -> BasePermissionLevel:
     """Get the permission level of a given member."""
 
+    from PyDrocsid.environment import OWNER_IDS
+    from PyDrocsid.util import is_sudoer
+
+    if is_sudoer(member):
+        return cast(BasePermissionLevel, cls.SUDO)
+
+    if member.id in OWNER_IDS:
+        return cast(BasePermissionLevel, cls.OWNER)
+
     if not isinstance(member, Member):
         return cast(BasePermissionLevel, cls.PUBLIC)
 
